@@ -1,0 +1,7 @@
+version: '3'
+services:
+  neural-net: 
+    build: ./
+    container_name: neural-net
+    volumes:
+      - ./scripts:/usr/scripts
