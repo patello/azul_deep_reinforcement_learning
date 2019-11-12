@@ -6,7 +6,7 @@ from torch.autograd import Variable
 
 
 class ActorCritic(nn.Module):
-    def __init__(self, num_inputs, num_actions, hidden_size=256, learning_rate=3e-4):
+    def __init__(self, num_inputs, num_actions, hidden_size=1000, learning_rate=3e-4):
         super(ActorCritic, self).__init__()
 
         self.num_actions = num_actions

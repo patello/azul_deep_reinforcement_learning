@@ -5,3 +5,4 @@ services:
     container_name: neural-net
     volumes:
       - ./scripts:/usr/scripts
+      - ./game:/usr/game
