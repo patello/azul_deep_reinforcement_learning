@@ -17,6 +17,7 @@ class Azul:
         self.score=np.zeros(players,dtype=np.int)
         self.current_player=0
         self.next_first_player=1
+        self.players=players
     def __eq__(self, other):
         return np.array_equal(self.game_board_displays,other.game_board_displays) and np.array_equal(self.game_board_center,other.game_board_center) and np.array_equal(self.pattern_lines,other.pattern_lines) and np.array_equal(self.walls,other.walls) and np.array_equal(self.floors, other.floors) and np.array_equal(self.score,other.score) and self.current_player==other.current_player and self.next_first_player==other.next_first_player
     def new_round(self):
@@ -41,9 +42,13 @@ class Azul:
             self.score = np.array(data["score"],dtype=np.int)
             self.current_player = data["current_player"]
             self.next_first_player = data["next_first_player"]
+            self.players = data["players"]
     def move(self, display, color, pattern):
-        def add_to_floor(self):
-            pass
+        def add_to_floor(nr_tiles):
+            if self.floors[self.current_player-1]+nr_tiles<7:
+                self.floors[self.current_player-1]+=nr_tiles
+            else:
+                self.floors[self.current_player-1]=7
         #Display 0 indicates center display. 1..5 (for 2 players) are the displays
         if display != 0:
             #Save number of tiles of the given color before reseting
@@ -74,15 +79,17 @@ class Azul:
             else:
                 self.pattern_lines[self.current_player-1,pattern-1,color]=pattern
                 #Minus tile_overflow is the tiles that didn't fit in the pattern line
-                self.floors[self.current_player-1]+=(-tile_overflow)
+                add_to_floor(-tile_overflow)
         else:
-            self.floors[self.current_player-1]+=nr_tiles
-        
+            add_to_floor(nr_tiles)
+    def next_player(self):
+        if self.current_player<self.players:
+            self.current_player+=1
+        else:
+            self.current_player=1
 
 if __name__ == "__main__":
     game=Azul()
-    game.new_round()
-    print(str(game.game_board_displays))
 
 # TESTS Move these later
 
@@ -129,7 +136,7 @@ def test_azul_new_round():
 def test_azul_eq():
     game1=Azul()
     game2=Azul()
-    #Test that two initialized boards are euqal
+    #Test that two initialized boards are equal
     assert game1==game2
     #Test that two random boards are not equal 
     game1.new_round()
@@ -170,13 +177,14 @@ def test_azul_move():
     game.move(2,3,2)
     assert np.array_equal(game.pattern_lines[game.current_player-1,1],np.array([0,0,0,2,0]))
     assert game.floors[game.current_player-1]==2
-    #When taking from the center, also take the first player token
+    #When taking from the center, also take the first player token, which takes one space on the floor
     game.import_JSON("./tests/resources/game_first_round.json")
     game.move(1,0,2)
     game.move(0,1,1)
     assert np.array_equal(game.game_board_center,np.array([0,0,1,0,0,0],dtype=int))
     assert np.array_equal(game.pattern_lines[game.current_player-1,0],np.array([0,1,0,0,0],dtype=int))
     assert game.next_first_player==game.current_player
+    assert game.floors[game.current_player-1]==1
     #Tiles in the center stack. Also check that overfilling works when filling a non empty pattern
     game.import_JSON("./tests/resources/game_first_round.json")
     game.move(1,0,3)
@@ -190,3 +198,29 @@ def test_azul_move():
     assert game.floors[game.current_player-1]==2
     game.move(4,0,0)
     assert game.floors[game.current_player-1]==3
+    game.move(1,0,0)
+    game.move(2,3,1)
+    assert game.floors[game.current_player-1]==7
+
+def test_azul_next_player():
+    #In a two player game, the order of the first round goes 1,2,1
+    game=Azul()
+    game.new_round()
+    assert game.current_player==1
+    game.next_player()
+    assert game.current_player==2
+    game.next_player()
+    assert game.current_player==1
+    #In a four player game, the order of the first round goes 1,2,1
+    game=Azul(players=4)
+    game.new_round()
+    assert game.current_player==1
+    game.next_player()
+    assert game.current_player==2
+    game.next_player()
+    assert game.current_player==3
+    game.next_player()
+    assert game.current_player==4
+    game.next_player()
+    assert game.current_player==1
+
