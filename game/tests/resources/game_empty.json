@@ -42,10 +42,7 @@
             [0,0,0,0,0]
         ]
     ],
-    "floors":[
-        [0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0]
-    ],
+    "floors":[0,0],
     "score":[0,0],
     "current_player":0,
     "next_first_player":1

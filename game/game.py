@@ -13,7 +13,7 @@ class Azul:
         self.pattern_lines=np.repeat(pattern_lines_prototype[np.newaxis,:, :], players, axis=0)
         walls_prototype = np.zeros((5,5),dtype=np.bool)
         self.walls=np.repeat(walls_prototype[np.newaxis,:, :], players, axis=0)
-        self.floors=np.zeros((players,7),dtype=np.bool)
+        self.floors=np.zeros(players,dtype=np.int)
         self.score=np.zeros(players,dtype=np.int)
         self.current_player=0
         self.next_first_player=1
@@ -37,7 +37,7 @@ class Azul:
             self.game_board_center = np.array(data["game_board_center"],dtype=np.int)
             self.pattern_lines = np.array(data["pattern_lines"],dtype=np.int)
             self.walls = np.array(data["walls"],dtype=np.bool)
-            self.floors = np.array(data["floors"],dtype=np.bool)
+            self.floors = np.array(data["floors"],dtype=np.int)
             self.score = np.array(data["score"],dtype=np.int)
             self.current_player = data["current_player"]
             self.next_first_player = data["next_first_player"]
@@ -74,9 +74,9 @@ class Azul:
             else:
                 self.pattern_lines[self.current_player-1,pattern-1,color]=pattern
                 #Minus tile_overflow is the tiles that didn't fit in the pattern line
-                add_to_floor(-tile_overflow)
+                self.floors[self.current_player-1]+=(-tile_overflow)
         else:
-            add_to_floor(nr_tiles)
+            self.floors[self.current_player-1]+=nr_tiles
         
 
 if __name__ == "__main__":
@@ -102,7 +102,7 @@ def test_azul_init():
         assert np.count_nonzero(Azul(players=i).walls) == 0
     # floor should be of size (nr of players,7)
     for i in range(2,5):
-        assert Azul(players=i).floors.shape == (i,7)
+        assert Azul(players=i).floors.shape == (i,)
     # score should be of size (nr of players,) and be zero
     for i in range(2,5):
         assert Azul(players=i).score.shape == (i,)
@@ -169,7 +169,7 @@ def test_azul_move():
     game.import_JSON("./tests/resources/game_first_round.json")
     game.move(2,3,2)
     assert np.array_equal(game.pattern_lines[game.current_player-1,1],np.array([0,0,0,2,0]))
-    assert np.array_equal(game.floors[game.current_player-1],np.array([1,1,0,0,0,0,0],dtype=np.bool))
+    assert game.floors[game.current_player-1]==2
     #When taking from the center, also take the first player token
     game.import_JSON("./tests/resources/game_first_round.json")
     game.move(1,0,2)
@@ -183,8 +183,10 @@ def test_azul_move():
     game.move(3,0,3)
     assert np.array_equal(game.game_board_center,np.array([0,2,1,1,0,1],dtype=int))
     assert np.array_equal(game.pattern_lines[game.current_player-1,2],np.array([3,0,0,0,0],dtype=int))
-    assert np.array_equal(game.floors[current_player-1],np.array([1,0,0,0,0,0,0],dtype=np.bool))
-    #Giving a pattern value of one makes the tiles go directly to the floor
+    assert game.floors[game.current_player-1]==1
+    #Giving a pattern value of one makes the tiles go directly to the floor and adding to the floor stacks
     game.import_JSON("./tests/resources/game_first_round.json")
     game.move(3,0,0)
-    assert np.array_equal(game.floors[game.current_player-1],np.array([1,1,0,0,0,0,0]))
+    assert game.floors[game.current_player-1]==2
+    game.move(4,0,0)
+    assert game.floors[game.current_player-1]==3
