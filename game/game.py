@@ -32,28 +32,26 @@ if __name__ == "__main__":
 # TESTS Move these later
 
 def test_azul_init():
-    game=Azul()
-    game4Players=Azul(players=4)
-    # gameBoardDisplays should be of size (5,5).
+    # game_board_displays should be of size (5,5).
     # TODO: Size should change depending on nr of players
-    assert game.game_board_displays.shape == (5,5)
-    # gameBoardCenter should be of size 6
-    assert game.game_board_center.shape == (6,)
-    # patternLines should be of size (nrOfPlayers,5,5)
-    assert game.pattern_lines.shape == (2,5,5)
-    assert np.count_nonzero(game4Players.pattern_lines) == 0
-    assert game4Players.pattern_lines.shape == (4,5,5)
-    # walls should be of size (nrOfPlayers,5,5) and be empty
-    assert game.walls.shape == (2,5,5)
-    assert np.count_nonzero(game4Players.walls) == 0
-    assert game4Players.walls.shape == (4,5,5)
-    # floor should be of size (nrOfPlayers,7)
-    assert game.floors.shape == (2,7)
-    assert game4Players.floors.shape == (4,7)
-    # score should be of size (nrOfPlayers,) and be zero
-    assert game.score.shape == (2,)
-    assert np.count_nonzero(game4Players.score) == 0
-    assert game4Players.score.shape == (4,)
+    assert Azul().game_board_displays.shape == (5,5)
+    # game_board_center should be of size 6
+    assert Azul().game_board_center.shape == (6,)
+    # pattern__lines should be of size (nr of players,5,5)
+    for i in range(2,5):
+        assert Azul(players=i).pattern_lines.shape == (i,5,5)
+        assert np.count_nonzero(Azul(players=i).pattern_lines) == 0
+    # walls should be of size (nr of players,5,5) and be empty
+    for i in range(2,5):
+        assert Azul(players=i).walls.shape == (i,5,5)
+        assert np.count_nonzero(Azul(players=i).walls) == 0
+    # floor should be of size (nr of players,7)
+    for i in range(2,5):
+        assert Azul(players=i).floors.shape == (i,7)
+    # score should be of size (nr of players,) and be zero
+    for i in range(2,5):
+        assert Azul(players=i).score.shape == (i,)
+        assert np.count_nonzero(Azul(players=i).score) == 0
 
 def test_azul_new_round():
     game=Azul()
