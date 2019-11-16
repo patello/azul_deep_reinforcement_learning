@@ -82,6 +82,21 @@ class Azul:
                 add_to_floor(-tile_overflow)
         else:
             add_to_floor(nr_tiles)
+    def is_legal_move(self, display, color, pattern):
+        #Check if displays or center should be checked, then check if there exists tiles of the corresponding color in the display. Else return false
+        if display > 0:
+            if self.game_board_displays[display-1,color]<1:
+                return False
+        else:
+            if self.game_board_center[color]<1:
+                return False
+        #Check if we are adding to a pattern line, otherwise testning pattern line and wall is not relevant
+        if pattern > 0:
+            if np.count_nonzero(self.pattern_lines[self.current_player-1,pattern-1,:color])+np.count_nonzero(self.pattern_lines[self.current_player-1,pattern-1,color+1:5])> 0:
+                return False
+            if self.walls[self.current_player-1,pattern-1,color]:
+                return False
+        return True
     def next_player(self):
         if self.current_player<self.players:
             self.current_player+=1
@@ -90,6 +105,7 @@ class Azul:
 
 if __name__ == "__main__":
     game=Azul()
+    test_azul_is_legal_move()
 
 # TESTS Move these later
 
@@ -201,6 +217,28 @@ def test_azul_move():
     game.move(1,0,0)
     game.move(2,3,1)
     assert game.floors[game.current_player-1]==7
+
+def test_azul_is_legal_move():
+    game=Azul()
+    game.import_JSON("./tests/resources/game_first_round.json")
+    #Taking a color that exists from the displays, and putting it in an empty position is allowed
+    assert game.is_legal_move(5,0,2)
+    #Taking a color that does not exist from the displays is not allowed
+    assert not game.is_legal_move(1,4,2)
+    #Taking a color that exists from the center, and putting it in an empty position is allowed
+    game.move(5,0,2)
+    assert game.is_legal_move(0,1,1)
+    #Taking a color that does not exist from the center is not allowed, even if first player token is there
+    assert not game.is_legal_move(0,0,0)
+    game.import_JSON("./tests/resources/game_first_round.json")
+    assert not game.is_legal_move(0,0,0)
+    #Filling a color that already exist in the pattern line is allowed, but only if it is the same color as the one already in the line
+    game.import_JSON("./tests/resources/game_sample_1.json")
+    assert game.is_legal_move(0,0,5)
+    assert not game.is_legal_move(0,1,5)
+    #You are allowed to put a tile on the pattern line only if that tile does not already exist on the wall
+    assert game.is_legal_move(5,0,3)
+    assert not game.is_legal_move(5,2,3)
 
 def test_azul_next_player():
     #In a two player game, the order of the first round goes 1,2,1
