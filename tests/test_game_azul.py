@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from game.game import *
+from game.azul import *
 
 def test_azul_init():
     # game_board_displays should be of size (5,5).
