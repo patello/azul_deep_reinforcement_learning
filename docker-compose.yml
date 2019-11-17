@@ -6,3 +6,4 @@ services:
     volumes:
       - ./scripts:/usr/scripts
       - ./game:/usr/game
+      - ./tests:/usr/tests
