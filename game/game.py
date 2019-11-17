@@ -2,8 +2,15 @@ import numpy as np
 import random
 import sys
 import json
+import pytest
 
 random.seed()
+
+class IllegalMove(Exception):
+    pass
+
+class GameEnded(Exception):
+    pass
 
 class Azul:
     def __init__(self,players=2):
@@ -18,8 +25,9 @@ class Azul:
         self.current_player=0
         self.next_first_player=1
         self.players=players
+        self.end_of_game=False
     def __eq__(self, other):
-        return np.array_equal(self.game_board_displays,other.game_board_displays) and np.array_equal(self.game_board_center,other.game_board_center) and np.array_equal(self.pattern_lines,other.pattern_lines) and np.array_equal(self.walls,other.walls) and np.array_equal(self.floors, other.floors) and np.array_equal(self.score,other.score) and self.current_player==other.current_player and self.next_first_player==other.next_first_player
+        return np.array_equal(self.game_board_displays,other.game_board_displays) and np.array_equal(self.game_board_center,other.game_board_center) and np.array_equal(self.pattern_lines,other.pattern_lines) and np.array_equal(self.walls,other.walls) and np.array_equal(self.floors, other.floors) and np.array_equal(self.score,other.score) and self.current_player==other.current_player and self.next_first_player==other.next_first_player and self.players==other.players and self.end_of_game == other.end_of_game
     def new_round(self):
         #Set current player and reset next player
         self.current_player=self.next_first_player
@@ -104,6 +112,14 @@ class Azul:
             self.current_player=1
     def is_end_of_round(self):
         return np.count_nonzero(self.game_board_displays) + np.count_nonzero(self.game_board_center) < 1
+    def is_end_of_game(self):
+        for player in range(self.players):
+            #Iterate through all rows for all players
+            for i in range(5):
+                #If at least one row is full, then the game is ended
+                if np.count_nonzero(self.walls[player,i])==5:
+                    return True
+        return False
     def count_score(self):
         #Current implementation of count score resets the pattern lines and floor and set the wall.
         def to_wall_position(color,pattern):
@@ -197,6 +213,24 @@ class Azul:
             return count
         for player in range(self.players):
             self.score[player]+=count_floor(player)+count_wall(player)
+    def step(self, display, color, pattern):
+        #You are not allowed to make a move on a game that has ended
+        if self.end_of_game:
+            raise GameEnded
+        #If the move is illegal, raise and exception
+        if not self.is_legal_move(display, color, pattern):
+            raise IllegalMove
+        #If no exceptions, make the move
+        self.move(display, color, pattern)
+        #Score if the round has ended. Then check if the game has ended
+        if self.is_end_of_round():
+            self.count_score()
+            if self.is_end_of_game():
+                self.end_of_game=True
+            else:
+                self.new_round()
+        else:
+            self.next_player()
 
 if __name__ == "__main__":
     game=Azul()
@@ -372,6 +406,24 @@ def test_azul_is_end_of_round():
     game.move(0,3,3)
     assert game.is_end_of_round()
 
+def test_azul_is_end_of_game():
+    game = Azul()
+    #Test moves that should not result in end of game
+    game.import_JSON("./tests/resources/game_end_of_round_2.json")
+    assert not game.is_end_of_game()
+    game.move(0,4,1)
+    game.next_player()
+    game.move(0,0,3)
+    game.count_score()
+    assert not game.is_end_of_game()
+    #Test moves that should result in end of game after score has been counted
+    game.import_JSON("./tests/resources/game_end_of_round_2.json")
+    game.move(0,0,1)
+    game.next_player()
+    game.move(0,4,1)
+    game.count_score()
+    assert game.is_end_of_game()
+
 def test_azul_count_score():
     game=Azul()
     #Check that the players get the correct score when no bonuses are applied and that the pattern lines and well end up in the right state
@@ -409,3 +461,48 @@ def test_azul_count_score():
     game.move(0,4,1)
     game.count_score()
     assert np.array_equal(game.score,prev_score+np.array([2 - 2, 5 + 2]))
+
+def test_azul_test_step():
+    game=Azul()
+    game.import_JSON("./tests/resources/game_first_round.json")
+    #Check that a step executes the move and passes to the next player
+    game.step(5,0,2)
+    assert np.array_equal(game.game_board_displays[4],np.zeros(5,))
+    assert np.array_equal(game.game_board_center,np.array([0,1,2,0,0,1]))
+    assert np.array_equal(game.pattern_lines[0,1],np.array([1,0,0,0,0]))
+    assert game.current_player==2
+    #Making an illegal move should raise an exception and the state should not change 
+    import copy
+    game.import_JSON("./tests/resources/game_first_round.json")
+    prev_game_state = copy.copy(game)
+    with pytest.raises(IllegalMove):
+        game.step(1,4,2)
+    assert game==prev_game_state
+    #Making the last move should trigger a score count, make the player with the first player token the current player and reset the board
+    game.import_JSON("./tests/resources/game_end_of_round_1.json")
+    prev_score=np.copy(game.score)
+    next_first_player=game.next_first_player
+    game.step(0,3,3)
+    #After new round, no display should have more than 4 tiles
+    for tile in game.game_board_displays:
+        assert np.sum(tile) == 4
+    #After new round, game board center should have zero color tiles
+    assert np.count_nonzero(game.game_board_center[:5]) == 0
+    #After new round, game board center should have one white tile
+    assert game.game_board_center[5] == 1
+    #Make sure the score has been counted correctly
+    assert np.array_equal(game.score,prev_score+np.array([5 + 5 + 1 - 2, 4 + 2 + 3 + 3 - 8]))
+    #Make sure the next player token is passed
+    assert game.current_player==next_first_player
+    assert game.next_first_player == 0
+    #Completing a row should trigger end of game after the round is over
+    game.import_JSON("./tests/resources/game_end_of_round_2.json")
+    prev_score=np.copy(game.score)
+    game.step(0,0,1)
+    assert not game.end_of_game
+    game.step(0,4,1)
+    assert np.array_equal(game.score,prev_score+np.array([2 - 2, 5 + 2]))
+    assert game.end_of_game
+    #Trying to make a step after the game has ended should raise an exception
+    with pytest.raises(GameEnded):
+        game.step(0,0,0)
