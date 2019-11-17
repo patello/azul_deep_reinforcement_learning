@@ -133,6 +133,7 @@ class Azul:
                         self.walls[player,pattern,color] = True
                         #pos_count will be used to tally the score when checking the neighboaring tiles
                         pos_count = 0
+                        bonus_count = 0
                         only_row=True
                         only_col=True
                         #Count forwards along the pattern line. These should probably be functionized
@@ -171,7 +172,28 @@ class Azul:
                             pos_count+=2
                         else:
                             pos_count+=1
-                        count += pos_count
+                        #Check if the row is complete by iterating through it
+                        for i in range(5):
+                            if self.walls[player,pattern,i]:
+                                if i == 4:
+                                    bonus_count+=2
+                            else:
+                                break
+                        #Check if the column (color) is complete by iterating through it
+                        for j in range(5):
+                            if self.walls[player,j,color]:
+                                if j == 4:
+                                    bonus_count+=10
+                            else:
+                                break
+                        #Check if the vertical column (actual column) is complete by iterating through it
+                        for k in range(5):
+                            if self.walls[player,k,from_wall_position(to_wall_position(color,pattern),k)]:
+                                if k == 4:
+                                    bonus_count+=7
+                            else:
+                                break
+                        count += pos_count + bonus_count
             return count
         for player in range(self.players):
             self.score[player]+=count_floor(player)+count_wall(player)
@@ -371,3 +393,19 @@ def test_azul_count_score():
     game.move(0,3,3)
     game.count_score()
     assert np.array_equal(game.score,prev_score+np.array([5 + 5 + 1 - 2, 4 + 2 + 3 + 3 - 8]))
+    #Check that algorithm can gives score for color and column combos
+    game.import_JSON("./tests/resources/game_end_of_round_2.json")
+    prev_score=np.copy(game.score)
+    game.move(0,4,1)
+    game.next_player()
+    game.move(0,0,3)
+    game.count_score()
+    assert np.array_equal(game.score,prev_score+np.array([5 + 7 + 10, 5 + 7]))
+    #Check that algorithm can gives score for rows
+    game.import_JSON("./tests/resources/game_end_of_round_2.json")
+    prev_score=np.copy(game.score)
+    game.move(0,0,1)
+    game.next_player()
+    game.move(0,4,1)
+    game.count_score()
+    assert np.array_equal(game.score,prev_score+np.array([2 - 2, 5 + 2]))
