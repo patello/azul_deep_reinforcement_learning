@@ -102,10 +102,85 @@ class Azul:
             self.current_player+=1
         else:
             self.current_player=1
+    def is_end_of_round(self):
+        return np.count_nonzero(self.game_board_displays) + np.count_nonzero(self.game_board_center) < 1
+    def count_score(self):
+        #Current implementation of count score resets the pattern lines and floor and set the wall.
+        def to_wall_position(color,pattern):
+            #Function used to translate where a certain color ends up on the wall
+            return (color+pattern)%5
+        def from_wall_position(color,pattern):
+            #Function to translate which color a certain position on the wall is
+            return (color-pattern)%5
+        def count_floor(player):
+            #The if statements below capture the behaviour of the three penalty levels.
+            if self.floors[player] <= 2:
+                count = -self.floors[player]
+            elif self.floors[player] <= 5:
+                count = -2 - (self.floors[player]-2)*2
+            else:
+                count = -8 - (self.floors[player]-5)*3
+            self.floors[player] = 0
+            return count
+        def count_wall(player):
+            count = 0
+            for pattern in range(5):
+                for color in range(5):
+                    #Check if the pattern line for the particular color is full (equal to the pattern index plus 1)
+                    if self.pattern_lines[player,pattern,color] == pattern+1:
+                        #In that case, set it to zero and add it to the wall.
+                        self.pattern_lines[player,pattern,color]=0
+                        self.walls[player,pattern,color] = True
+                        #pos_count will be used to tally the score when checking the neighboaring tiles
+                        pos_count = 0
+                        only_row=True
+                        only_col=True
+                        #Count forwards along the pattern line. These should probably be functionized
+                        #Don't count the original tile, but keep track if no other tiles are counted.
+                        for i in range(to_wall_position(color,pattern)+1,5):
+                            if self.walls[player,pattern,from_wall_position(i,pattern)]:
+                                pos_count += 1
+                                only_row = False
+                            else:
+                                #If the position does not match, stop counting along this line
+                                break
+                        for i in range(to_wall_position(color,pattern)-1,-1,-1):
+                            if self.walls[player,pattern,from_wall_position(i,pattern)]:
+                                pos_count += 1
+                                only_row = False
+                            else:
+                                break
+                        #Don't count the original tile, but keep track if no other tiles are counted.
+                        for j in range(pattern+1,5):
+                            if self.walls[player,j,to_wall_position(color,pattern-j)]:
+                                pos_count += 1
+                                only_col = False
+                            else:
+                                #If the position does not match, stop counting along this line
+                                break
+                        for j in range(pattern-1,-1,-1):
+                            if self.walls[player,j,to_wall_position(color,pattern-j)]:
+                                pos_count += 1
+                                only_col = False
+                            else:
+                                #If the position does not match, stop counting along this line
+                                break
+                        if only_row and only_col:
+                            pos_count=1
+                        elif not (only_row or only_col):
+                            pos_count+=2
+                        else:
+                            pos_count+=1
+                        count += pos_count
+            return count
+        for player in range(self.players):
+            self.score[player]+=count_floor(player)+count_wall(player)
 
 if __name__ == "__main__":
     game=Azul()
-    test_azul_is_legal_move()
+    game.import_JSON("./tests/resources/game_end_of_round_1.json")
+    game.count_score()
+    
 
 # TESTS Move these later
 
@@ -262,3 +337,37 @@ def test_azul_next_player():
     game.next_player()
     assert game.current_player==1
 
+def test_azul_is_end_of_round():
+    game=Azul()
+    #Check that a game in the middle of the round does not trigger end of game
+    game.import_JSON("./tests/resources/game_sample_1.json")
+    assert not game.is_end_of_round()
+    game.move(0,0,5)
+    assert not game.is_end_of_round()
+    #Check that after the final move is made, end of round is true
+    game.import_JSON("./tests/resources/game_end_of_round_1.json")
+    assert not game.is_end_of_round()
+    game.move(0,3,3)
+    assert game.is_end_of_round()
+
+def test_azul_count_score():
+    game=Azul()
+    #Check that the players get the correct score when no bonuses are applied and that the pattern lines and well end up in the right state
+    game.import_JSON("./tests/resources/game_end_of_round_1.json")
+    prev_score=np.copy(game.score)
+    game.count_score()
+    assert np.array_equal(game.score,prev_score+np.array([5 + 5 + 1 - 2, 4 + 2 + 3 - 8]))
+    #Check that the floor has been emptied
+    assert np.array_equal(game.floors,np.zeros(2))
+    #Check that full pattern lines have been emptied
+    assert np.array_equal(game.pattern_lines[0],np.array([[0,0,0,0,0],[0,0,0,0,0],[0,0,2,0,0],[0,0,0,0,0],[0,0,3,0,0]]))
+    assert np.array_equal(game.pattern_lines[1],np.array([[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[2,0,0,0,0],[0,0,0,0,0]]))
+    #Check that walls have gotten their corresponding tiles
+    assert np.array_equal(game.walls[0],np.array([[1,1,1,0,0],[1,1,1,0,0],[0,0,0,0,0],[0,1,0,0,1],[0,0,0,0,0]]))
+    assert np.array_equal(game.walls[1],np.array([[1,1,1,1,0],[0,0,0,0,1],[0,0,1,0,0],[0,1,0,0,0],[1,1,0,0,0]]))
+    #Check that the algorithm works when a wall tile is added in the same round
+    game.import_JSON("./tests/resources/game_end_of_round_1.json")
+    prev_score=np.copy(game.score)
+    game.move(0,3,3)
+    game.count_score()
+    assert np.array_equal(game.score,prev_score+np.array([5 + 5 + 1 - 2, 4 + 2 + 3 + 3 - 8]))
