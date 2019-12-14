@@ -46,5 +46,6 @@
     "score":[40,31],
     "current_player":2,
     "next_first_player":2,
-    "players":2
+    "players":2,
+    "turn_counter":5
 }

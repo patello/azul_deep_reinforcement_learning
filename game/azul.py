@@ -25,11 +25,13 @@ class Azul:
         self.next_first_player=1
         self.players=players
         self.end_of_game=False
+        self.turn_counter=0
     def __eq__(self, other):
-        return np.array_equal(self.game_board_displays,other.game_board_displays) and np.array_equal(self.game_board_center,other.game_board_center) and np.array_equal(self.pattern_lines,other.pattern_lines) and np.array_equal(self.walls,other.walls) and np.array_equal(self.floors, other.floors) and np.array_equal(self.score,other.score) and self.current_player==other.current_player and self.next_first_player==other.next_first_player and self.players==other.players and self.end_of_game == other.end_of_game
+        return np.array_equal(self.game_board_displays,other.game_board_displays) and np.array_equal(self.game_board_center,other.game_board_center) and np.array_equal(self.pattern_lines,other.pattern_lines) and np.array_equal(self.walls,other.walls) and np.array_equal(self.floors, other.floors) and np.array_equal(self.score,other.score) and self.current_player==other.current_player and self.next_first_player==other.next_first_player and self.players==other.players and self.end_of_game == other.end_of_game and self.turn_counter == other.turn_counter
     def new_round(self):
-        #Set current player and reset next player
+        #Set current player and reset next player and increment the turn counter
         self.current_player=self.next_first_player
+        self.turn_counter += 1
         self.next_first_player=0
         #Game board center starts empty except for the first player token (sixth index).
         self.game_board_center=np.array([0,0,0,0,0,1],dtype=np.int)
@@ -50,6 +52,7 @@ class Azul:
             self.current_player = data["current_player"]
             self.next_first_player = data["next_first_player"]
             self.players = data["players"]
+            self.turn_counter = data["turn_counter"]
     def move(self, display, color, pattern):
         def add_to_floor(nr_tiles):
             if self.floors[self.current_player-1]+nr_tiles<7:
@@ -212,6 +215,9 @@ class Azul:
             return count
         for player in range(self.players):
             self.score[player]+=count_floor(player)+count_wall(player)
+            #You should never be able to go below 0 points
+            if self.score[player] < 0:
+                self.score[player] = 0
     def step(self, display, color, pattern):
         #You are not allowed to make a move on a game that has ended
         if self.end_of_game:

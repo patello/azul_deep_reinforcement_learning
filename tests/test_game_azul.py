@@ -23,7 +23,8 @@ def test_azul_init():
     for i in range(2,5):
         assert Azul(players=i).score.shape == (i,)
         assert np.count_nonzero(Azul(players=i).score) == 0
-
+    # Turn counter should be set to 0
+    assert Azul().turn_counter == 0
 def test_azul_new_round():
     game=Azul()
     prev_next_first_player=game.next_first_player
@@ -41,6 +42,11 @@ def test_azul_new_round():
     game.next_first_player = 1
     game.new_round()
     assert game.next_first_player == 0
+    #Check that turn timer correctly increments its value with a new round
+    game=Azul()
+    prev_turn_counter=game.turn_counter
+    game.new_round()
+    assert game.turn_counter == prev_turn_counter + 1
 
 def test_azul_eq():
     game1=Azul()
@@ -224,6 +230,13 @@ def test_azul_count_score():
     game.move(0,4,1)
     game.count_score()
     assert np.array_equal(game.score,prev_score+np.array([2 - 2, 5 + 2]))
+    #Check that you can't go below 0 points
+    game.import_JSON("usr/tests/resources/game_end_of_round_2.json")
+    game.move(0,0,0)
+    game.next_player()
+    game.move(0,4,0)
+    game.count_score()
+    assert np.array_equal(game.score,np.array([0, 0]))
 
 def test_azul_test_step():
     game=Azul()
