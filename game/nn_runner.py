@@ -1,7 +1,10 @@
 from game.azul import Azul
 
 import math
+import random
 import numpy as np
+
+random.seed()
 
 # Class till will help the neural network to run properly
 class NNRunner:
@@ -38,9 +41,14 @@ def check_all_valid(game):
     for i in range(6*5*6):
         all_valid[i]=game.is_legal_move(*nn_deserialize(i))
     return all_valid
-# Pseudo code for new functionality that will be added
-#def opponent_random(game):
-#   stores all valid moves, by using check_all_valid.
-#   multiply all invalid moves with a weight table, to remove the invalid ones.
-#   (possibly normalize the weights if needed)
-#   return a random integer, as specified by the weight table
+
+def opponent_random(game):
+    weight_table=np.ones(180)
+    #Weight of the straight to floor moves should be lower than the others
+    for i in range(6):
+        for j in range(5):
+            weight_table[nn_serialize(i,j,0)]=0.1
+    all_valid = check_all_valid(game)
+    #Weight should be set to zero for invalid moves
+    weight_table=np.multiply(weight_table,all_valid)
+    return random.choices(range(180),weights=weight_table)[0]

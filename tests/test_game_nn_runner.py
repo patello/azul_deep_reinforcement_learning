@@ -47,3 +47,16 @@ def test_check_all_valid():
     game.import_JSON("/usr/tests/resources/game_sample_1.json")
     all_valid = check_all_valid(game)
     assert all_valid[nn_serialize(0,0,4)]
+
+def test_opponent_random():
+    game=Azul()
+    game.import_JSON("/usr/tests/resources/game_first_round.json")
+    all_valid = check_all_valid(game)
+    #Make a number of random moves and check that they are between 0..180 and that they are valid
+    moves=np.zeros(1000,dtype="int")
+    for i in range(moves.size):
+        moves[i]=opponent_random(game)
+        assert all_valid[moves[i]]
+    assert np.count_nonzero(moves > 179) == 0
+    assert np.count_nonzero(moves < 0) == 0
+    
