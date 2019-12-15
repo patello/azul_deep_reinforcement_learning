@@ -2,6 +2,7 @@ from game.azul import Azul
 
 import math
 import random
+import copy
 import numpy as np
 
 random.seed()
@@ -10,19 +11,25 @@ random.seed()
 class NNRunner:
     def __init__(self):
         self.game = Azul()
-#       NNRunner will keep track of the players relative score, in order to see how much is gained
-#       or lost.
+        # Start the game with a set board
+        self.game.new_round()
+        # NNRunner will keep track of the players relative score, in order to see how much is gained
+        # or lost.
         self.player_score = 0
         self.move_counter = 0
+    def step(self, i):
+        self.game.step(*nn_deserialize(i))
+        while self.game.current_player != 1 and not self.game.is_end_of_game():
+            self.game.step(*nn_deserialize(opponent_random(self.game)))
+        game_copy=copy.deepcopy(self.game)
+        game_copy.count_score()
+        new_player_score = game_copy.score[0]-game_copy.score[1]
+        reward = new_player_score-self.player_score
+        self.player_score = new_player_score
+        return reward, self.game.is_end_of_game()
 # Pseudo code for new functionality that will be added
-#   def step(self, i):
-#       make action i
-#       generate action for opponent, repeate until it is player 1's turn again
-#       count score by creating a deep copy of the game board and use the function count_score
-#           if that is not possible, we will need to modify the original function not to modofy the table
-#       calculate the reward
-#       update the player_score
-#       return the reward, new state and end_of_game
+#   def get_state_flat(self)
+#       flatten the state into a np.array
 
 # Returns a integer between 1..180
 def nn_serialize(display,color,pattern):
@@ -47,7 +54,7 @@ def opponent_random(game):
     #Weight of the straight to floor moves should be lower than the others
     for i in range(6):
         for j in range(5):
-            weight_table[nn_serialize(i,j,0)]=0.1
+            weight_table[nn_serialize(i,j,0)]=0.01
     all_valid = check_all_valid(game)
     #Weight should be set to zero for invalid moves
     weight_table=np.multiply(weight_table,all_valid)
