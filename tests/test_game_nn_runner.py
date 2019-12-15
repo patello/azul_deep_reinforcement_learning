@@ -43,7 +43,7 @@ def test_nnrunner_step():
     reward, end_of_game = nnrunner.step(nn_serialize(0,0,1))
     assert end_of_game
     #Check that player score is same as score difference
-    assert nnrunner.player_score==nnrunner.game.score[0]-nrunner.game.score[1]
+    assert nnrunner.player_score==nnrunner.game.score[0]-nnrunner.game.score[1]
     #Load game_end_of_round_3 to see that game_board gets reset
     nnrunner=NNRunner()
     nnrunner.game.import_JSON("/usr/tests/resources/game_end_of_round_3.json")
@@ -62,7 +62,13 @@ def test_nnrunner_step():
     game_center = NNRunner().game.game_board_center
     assert np.array_equal(game_center,np.array([0,0,0,0,0,1]))
     assert nnrunner.game.current_player == 1
-    
+
+def test_nnrunner_get_state_flat():
+    nnrunner=NNRunner()
+    state_flat = nnrunner.get_state_flat()
+    assert np.sum(state_flat) == 4*5 + 1
+    assert np.size(state_flat) == 5*5 + 6 + 5*5*2 + 5*5*2 + 2 + 2 + 1
+
 def test_nn_tools_serialize():
     #Iterate through all serializable tuples and test that you get the same thing back
     for i in range(6):

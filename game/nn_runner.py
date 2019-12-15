@@ -27,9 +27,8 @@ class NNRunner:
         reward = new_player_score-self.player_score
         self.player_score = new_player_score
         return reward, self.game.is_end_of_game()
-# Pseudo code for new functionality that will be added
-#   def get_state_flat(self)
-#       flatten the state into a np.array
+    def get_state_flat(self):
+        return np.concatenate((self.game.game_board_displays.flatten(),self.game.game_board_center,self.game.pattern_lines.flatten(),self.game.walls.flatten(),self.game.floors,self.game.score,[self.game.next_first_player]))
 
 # Returns a integer between 1..180
 def nn_serialize(display,color,pattern):
