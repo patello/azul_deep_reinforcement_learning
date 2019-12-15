@@ -1,6 +1,7 @@
 from game.azul import Azul
 
 import math
+import numpy as np
 
 # Class till will help the neural network to run properly
 class NNRunner:
@@ -8,7 +9,7 @@ class NNRunner:
         self.game = Azul()
 #       NNRunner will keep track of the players relative score, in order to see how much is gained
 #       or lost.
-#       self.player_score = 0
+        self.player_score = 0
         self.move_counter = 0
 # Pseudo code for new functionality that will be added
 #   def step(self, i):
@@ -32,9 +33,12 @@ def nn_deserialize(i):
     pattern = math.floor(i/(5*6))
     return (display, color, pattern)
 
+def check_all_valid(game):
+    all_valid = np.zeros(180,dtype="bool")
+    for i in range(6*5*6):
+        all_valid[i]=game.is_legal_move(*nn_deserialize(i))
+    return all_valid
 # Pseudo code for new functionality that will be added
-#def check_all_valid(game):
-#   iterate over all integers for the game, return a list of 180 booleans
 #def opponent_random(game):
 #   stores all valid moves, by using check_all_valid.
 #   multiply all invalid moves with a weight table, to remove the invalid ones.
