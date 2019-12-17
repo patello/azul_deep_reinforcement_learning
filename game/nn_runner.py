@@ -29,7 +29,13 @@ class NNRunner:
         return reward, self.game.is_end_of_game()
     def get_state_flat(self):
         return np.concatenate((self.game.game_board_displays.flatten(),self.game.game_board_center,self.game.pattern_lines.flatten(),self.game.walls.flatten(),self.game.floors,self.game.score,[self.game.next_first_player]))
-
+    def get_valid_moves(self):
+        #TODO: Write test for this
+        return check_all_valid(self.game)
+    def reset(self):
+        #TODO: Write test for this
+        self.__init__()
+        
 # Returns a integer between 1..180
 def nn_serialize(display,color,pattern):
     return display+color*6+pattern*5*6

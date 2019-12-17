@@ -4,6 +4,10 @@ services:
     build: ./
     container_name: neural-net
     volumes:
-      - ./scripts:/usr/scripts
+      - ./neural:/usr/neural
       - ./game:/usr/game
       - ./tests:/usr/tests
+  # Added as part of debugging. Probably not needed
+    stdin_open: true
+    tty: true
+  # This only works with the command docker-compose run --rm neural-net /bin/bash. Not docker-compose up. No idea why

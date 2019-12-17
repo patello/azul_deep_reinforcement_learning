@@ -39,7 +39,7 @@ class Azul:
         self.game_board_displays=np.zeros((5,5),dtype=np.int)
         for i in range(5):
             for j in range (4):
-                self.game_board_displays[i,random.randrange(0,4,1)] += 1
+                self.game_board_displays[i,random.randrange(0,5,1)] += 1
     def import_JSON(self,path):
         with open(path) as json_file:
             data = json.load(json_file)
@@ -101,7 +101,7 @@ class Azul:
             if self.game_board_center[color]<1:
                 return False
         #Check if we are adding to a pattern line, otherwise testning pattern line and wall is not relevant
-        if pattern > 0:
+        if pattern != 0:
             if np.count_nonzero(self.pattern_lines[self.current_player-1,pattern-1,:color])+np.count_nonzero(self.pattern_lines[self.current_player-1,pattern-1,color+1:5])> 0:
                 return False
             if self.walls[self.current_player-1,pattern-1,color]:
