@@ -21,6 +21,7 @@ class NNRunner:
         self.game.step(*nn_deserialize(i))
         while self.game.current_player != 1 and not self.game.is_end_of_game():
             self.game.step(*nn_deserialize(opponent_random(self.game)))
+        print(self.game.is_end_of_game())
         game_copy=copy.deepcopy(self.game)
         game_copy.count_score()
         new_player_score = game_copy.score[0]-game_copy.score[1]

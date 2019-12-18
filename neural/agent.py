@@ -40,14 +40,11 @@ class Agent():
 
     def get_ac_output(self, state,done=False):
         state = Variable(torch.from_numpy(state).float().unsqueeze(0))
-        value, policy_dist = self.ac_net.forward(state)
+        value, policy_dist = self.ac_net.forward(state,torch.from_numpy(self.env.get_valid_moves().reshape(1,180)))
+        print("get_ac_output: "+str(done))
         if done:
             return 0,0,value
-        valid_policy_dist = np.multiply(policy_dist.detach().numpy().squeeze(0),self.env.get_valid_moves())
-        try:
-            action = np.random.choice(self.num_out, p=valid_policy_dist/np.sum(valid_policy_dist))
-        except:
-            print(str(self.env.get_state_flat()))
+        action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
         return action, policy_dist, value
 
     def train(self, max_episode, max_step):
@@ -59,6 +56,7 @@ class Agent():
             episode_reward = 0
             
             self.env.reset()
+            print(self.env.get_valid_moves())
             state = self.env.get_state_flat()
             for steps in range(max_step):
                 action, policy_dist, value = self.get_ac_output(state)
@@ -75,7 +73,7 @@ class Agent():
                 state = new_state
                 episode_reward += reward
                 if done:
-                    if episode % 1 == 0:                    
+                    if episode % 100 == 0:                    
                         #print("episode: " + str(episode) + ": " + str(episode_reward)) 
                         with open('/usr/neural/result.txt', mode="a+") as csv_file:
                             result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
