@@ -32,7 +32,8 @@ class Agent():
         advantage = qvals - values
         actor_loss = (-log_probs * advantage).mean()
         critic_loss = advantage.pow(2).mean()
-        ac_loss = actor_loss + 0.5 * critic_loss - 0.001 * entropy
+        #Entropy term becomes infinite when log_probs are zero and needed to be removed from the loss function
+        ac_loss = actor_loss + 0.5 * critic_loss# - 0.001 * entropy
 
         self.ac_optimizer.zero_grad()
         ac_loss.backward()
@@ -62,8 +63,9 @@ class Agent():
                 new_state = self.env.get_state_flat()
 
                 log_prob = torch.log(policy_dist.squeeze(0)[action])
-                entropy = -torch.sum(policy_dist.mean() * torch.log(policy_dist))
                 
+                entropy = -torch.sum(policy_dist.mean() * torch.log(policy_dist))
+
                 rewards.append(reward)
                 values.append(value.detach().numpy()[0])
                 log_probs.append(log_prob)
@@ -75,7 +77,7 @@ class Agent():
                         #print("episode: " + str(episode) + ": " + str(episode_reward)) 
                         with open('/usr/neural/result.txt', mode="a+") as csv_file:
                             result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                            result_file.writerow([episode,episode_reward])
+                            result_file.writerow([episode,episode_reward,self.env.game.score[0],self.env.game.score[1],self.env.move_counter])
                     break
 
             _, _, next_value = self.get_ac_output(state,done=True)
