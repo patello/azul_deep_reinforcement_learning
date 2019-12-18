@@ -41,7 +41,6 @@ class Agent():
     def get_ac_output(self, state,done=False):
         state = Variable(torch.from_numpy(state).float().unsqueeze(0))
         value, policy_dist = self.ac_net.forward(state,torch.from_numpy(self.env.get_valid_moves().reshape(1,180)))
-        print("get_ac_output: "+str(done))
         if done:
             return 0,0,value
         action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
@@ -56,7 +55,6 @@ class Agent():
             episode_reward = 0
             
             self.env.reset()
-            print(self.env.get_valid_moves())
             state = self.env.get_state_flat()
             for steps in range(max_step):
                 action, policy_dist, value = self.get_ac_output(state)
