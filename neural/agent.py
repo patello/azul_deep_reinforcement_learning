@@ -16,7 +16,7 @@ class Agent():
         self.num_out = 180
 
         #self.ac_net = ActorCritic(self.num_in, self.num_out)
-        self.ac_net = torch.load('/usr/neural/model.mx')
+        self.ac_net = torch.load('/usr/neural/models/blue_adam_v01.mx')
         self.ac_optimizer = optim.Adam(self.ac_net.parameters(), lr=learning_rate)
     def update(self, rewards, values, next_value, log_probs, entropy):
         qvals = np.zeros(len(values))
@@ -34,7 +34,8 @@ class Agent():
         critic_loss = advantage.pow(2).mean()
         #Entropy term becomes infinite when log_probs are zero and needed to be removed from the loss function
         ac_loss = actor_loss + 0.5 * critic_loss# - 0.001 * entropy
-
+        print("Actor Loss: "+str(actor_loss))
+        print("Critic Loss: "+str(critic_loss))
         self.ac_optimizer.zero_grad()
         ac_loss.backward()
         self.ac_optimizer.step()
@@ -77,13 +78,13 @@ class Agent():
                     game_stats=np.vstack([game_stats,np.array([episode_reward,self.env.game.score[0],self.env.game.score[1],self.env.move_counter])])
                     if episode % 1000 == 0:                    
                         #print("episode: " + str(episode) + ": " + str(episode_reward)) 
-                        with open('/usr/neural/result.txt', mode="a+") as csv_file:
+                        with open('/usr/neural/results/temp.csv', mode="a+") as csv_file:
                             result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                             result_file.writerow(np.concatenate([[episode],game_stats.mean(axis=0)]))
                             game_stats=np.empty((0,4))
                     if episode % 10000 == 0:
                         #Save the model every 10000th iteration. Hopefully overwrites the old one.
-                        torch.save(self.ac_net,"/usr/neural/model.mx")
+                        torch.save(self.ac_net,"/usr/neural/models/blue_adam_v02.mx")
                     break
 
             _, _, next_value = self.get_ac_output(state,done=True)
