@@ -21,11 +21,12 @@ class Agent():
     def update(self, rewards, values, next_value, log_probs, entropy):
         qvals = np.zeros(len(values))
         qval = next_value
+
         for t in reversed(range(len(rewards))):
             qval = rewards[t] + self.gamma * qval
             qvals[t] = qval
         
-        values = torch.FloatTensor(values)
+        values = torch.stack(values)
         qvals = torch.FloatTensor(qvals)
         log_probs = torch.stack(log_probs)
 
@@ -34,8 +35,6 @@ class Agent():
         critic_loss = advantage.pow(2).mean()
         #Entropy term becomes infinite when log_probs are zero and needed to be removed from the loss function
         ac_loss = actor_loss + 0.5 * critic_loss# - 0.001 * entropy
-        print("Actor Loss: "+str(actor_loss))
-        print("Critic Loss: "+str(critic_loss))
         self.ac_optimizer.zero_grad()
         ac_loss.backward()
         self.ac_optimizer.step()
@@ -69,7 +68,7 @@ class Agent():
                 entropy = -torch.sum(policy_dist.mean() * torch.log(policy_dist))
 
                 rewards.append(reward)
-                values.append(value.detach().numpy()[0])
+                values.append(value)
                 log_probs.append(log_prob)
                 entropy_term += entropy
                 state = new_state
