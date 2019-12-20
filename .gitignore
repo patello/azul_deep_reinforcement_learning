@@ -2,4 +2,5 @@
 __pycache__/
 .pytest_cache/
 result.*
-*.mx
+/neural/models/*
+/neural/results/*
