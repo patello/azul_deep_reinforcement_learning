@@ -21,12 +21,13 @@ class Agent():
     def update(self, rewards, values, next_value, log_probs, entropy):
         qvals = np.zeros(len(values))
         qval = next_value
+        qval = 0
 
         for t in reversed(range(len(rewards))):
             qval = rewards[t] + self.gamma * qval
-            qvals[t] = qval
+            qvals[t] = [qval]
         
-        values = torch.stack(values)
+        values = torch.stack(values).squeeze(2)
         qvals = torch.FloatTensor(qvals)
         log_probs = torch.stack(log_probs)
 
