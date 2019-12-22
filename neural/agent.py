@@ -11,8 +11,8 @@ class Agent():
     class AgentStatistics():
         def __init__(self,nr_of_points=100):
             self.nr_of_points=nr_of_points
-            self.statisticsBuffer = {"actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
-            self.statistics = {"actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
+            self.statisticsBuffer = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
+            self.statistics = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
         def update(self,statistics):
             for stat in statistics:
                 self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])
@@ -22,7 +22,7 @@ class Agent():
                 
     def __init__(self, use_cnn=False, learning_rate=3e-4, gamma=0.99, buffer_size=10000):
         self.env = NNRunner()
-        self.agent_statistics = self.AgentStatistics()
+        self.agent_statistics = Agent.AgentStatistics()
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.num_in = 136
@@ -53,7 +53,7 @@ class Agent():
         self.ac_optimizer.zero_grad()
         ac_loss.backward()
         self.ac_optimizer.step()
-        statistics = {"actor_loss" : actor_loss.detach().numpy().squeeze(0), "critic_loss" : critic_loss.detach().numpy().squeeze(0), "ac_loss" : ac_loss.detach().numpy().squeeze(0)}
+        statistics = {"reward" : np.sum(rewards), "actor_loss" : actor_loss.detach().numpy().squeeze(0), "critic_loss" : critic_loss.detach().numpy().squeeze(0), "ac_loss" : ac_loss.detach().numpy().squeeze(0)}
         self.agent_statistics.update(statistics)
 
     def get_ac_output(self, state,done=False):
@@ -73,6 +73,7 @@ class Agent():
             entropy_term = 0
             episode_reward = 0
             
+            self.env.game_statistics.update(self.env.game.get_statistics())
             self.env.reset()
             state = self.env.get_state_flat()
             for steps in range(max_step):
@@ -103,6 +104,6 @@ class Agent():
                 #print("episode: " + str(episode) + ": " + str(episode_reward)) 
                 with open('/usr/neural/results/temp.csv', mode="a+") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    result_file.writerow(np.concatenate([[episode+1],game_stats.mean(axis=0),[x[-1] for x in self.agent_statistics.statistics.values()]]))
+                    result_file.writerow(np.concatenate([[episode+1],[stat_value[-1] for stat_value in self.agent_statistics.statistics.values()],[stat_value[-1] for stat_value in self.env.game_statistics.statistics.values()]]))
                     game_stats=np.empty((0,4))
             #,

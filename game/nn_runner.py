@@ -9,8 +9,21 @@ random.seed()
 
 # Class till will help the neural network to run properly
 class NNRunner:
+    class GameStatistics():
+        def __init__(self,nr_of_points=100):
+            self.nr_of_points=nr_of_points
+            self.statisticsBuffer = {"player_score" : np.empty(0), "opponent_score" : np.empty(0), "rounds" : np.empty(0)}
+            self.statistics = {"player_score" : np.empty(0), "opponent_score" : np.empty(0), "rounds" : np.empty(0)}
+        def update(self,statistics):
+            for stat in statistics:
+                self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])
+                if self.statisticsBuffer[stat].size >= self.nr_of_points:
+                    self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
+                    self.statisticsBuffer[stat] = np.empty(0)
+                
     def __init__(self):
         self.game = Azul()
+        self.game_statistics = NNRunner.GameStatistics()
         # Start the game with a set board
         self.game.new_round()
         # NNRunner will keep track of the players relative score, in order to see how much is gained
@@ -36,7 +49,11 @@ class NNRunner:
         return check_all_valid(self.game)
     def reset(self):
         #TODO: Write test for this
-        self.__init__()
+        #Changed this to only run parts of initialization, since I want to keep game statistics intact
+        self.game = Azul()
+        self.game.new_round()
+        self.player_score = 0
+        self.move_counter = 0
         
 # Returns a integer between 1..180
 def nn_serialize(display,color,pattern):

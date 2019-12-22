@@ -236,6 +236,8 @@ class Azul:
                 self.new_round()
         else:
             self.next_player()
+    def get_statistics(self):
+        return {"player_score":self.score[0],"opponent_score":self.score[1],"rounds":self.turn_counter}
 
 if __name__ == "__main__":
     game=Azul()
