@@ -31,6 +31,9 @@ class Agent():
         #self.ac_net = ActorCritic(self.num_in, self.num_out)
         self.ac_net = torch.load('/usr/neural/models/blue_adam_v01.mx')
         self.ac_optimizer = optim.Adam(self.ac_net.parameters(), lr=learning_rate)
+        
+    def update(self, rewards, values, next_value, log_probs, entropy):
+
         qvals = np.zeros((len(values),1))
         qval = 0
 
