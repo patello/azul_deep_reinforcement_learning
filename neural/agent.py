@@ -8,8 +8,21 @@ import csv
 
 class Agent():
 
+    class AgentStatistics():
+        def __init__(self,nr_of_points=999):
+            self.nr_of_points=nr_of_points
+            self.statisticsBuffer = {"actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
+            self.statistics = {"actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
+        def update(self,statistics):
+            for stat in statistics:
+                self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])
+                if self.statisticsBuffer[stat].size >= self.nr_of_points:
+                    self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
+                    self.statisticsBuffer[stat] = np.empty(0)
+                
     def __init__(self, use_cnn=False, learning_rate=3e-4, gamma=0.99, buffer_size=10000):
         self.env = NNRunner()
+        self.agent_statistics = self.AgentStatistics()
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.num_in = 136
@@ -18,9 +31,7 @@ class Agent():
         #self.ac_net = ActorCritic(self.num_in, self.num_out)
         self.ac_net = torch.load('/usr/neural/models/blue_adam_v01.mx')
         self.ac_optimizer = optim.Adam(self.ac_net.parameters(), lr=learning_rate)
-    def update(self, rewards, values, next_value, log_probs, entropy):
-        qvals = np.zeros(len(values))
-        qval = next_value
+        qvals = np.zeros((len(values),1))
         qval = 0
 
         for t in reversed(range(len(rewards))):
@@ -39,6 +50,8 @@ class Agent():
         self.ac_optimizer.zero_grad()
         ac_loss.backward()
         self.ac_optimizer.step()
+        statistics = {"actor_loss" : actor_loss.detach().numpy().squeeze(0), "critic_loss" : critic_loss.detach().numpy().squeeze(0), "ac_loss" : ac_loss.detach().numpy().squeeze(0)}
+        self.agent_statistics.update(statistics)
 
     def get_ac_output(self, state,done=False):
         state = Variable(torch.from_numpy(state).float().unsqueeze(0))
