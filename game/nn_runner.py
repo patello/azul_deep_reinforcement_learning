@@ -12,8 +12,8 @@ class NNRunner:
     class GameStatistics():
         def __init__(self,nr_of_points=100):
             self.nr_of_points=nr_of_points
-            self.statisticsBuffer = {"player_score" : np.empty(0), "opponent_score" : np.empty(0), "rounds" : np.empty(0)}
-            self.statistics = {"player_score" : np.empty(0), "opponent_score" : np.empty(0), "rounds" : np.empty(0)}
+            self.statisticsBuffer = {"player_score" : np.empty(0), "opponent_score" : np.empty(0), "rounds" : np.empty(0),"percent_first_player": np.empty(0),"floor_penalty":np.empty(0)}
+            self.statistics = {"player_score" : np.empty(0), "opponent_score" : np.empty(0), "rounds" : np.empty(0),"percent_first_player": np.empty(0),"floor_penalty":np.empty(0)}
         def update(self,statistics):
             for stat in statistics:
                 self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])

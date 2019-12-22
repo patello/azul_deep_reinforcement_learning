@@ -26,11 +26,14 @@ class Azul:
         self.players=players
         self.end_of_game=False
         self.turn_counter=0
+        self.first_player_stats = np.zeros(players)
+        self.floor_penalty = np.zeros(players)
     def __eq__(self, other):
         return np.array_equal(self.game_board_displays,other.game_board_displays) and np.array_equal(self.game_board_center,other.game_board_center) and np.array_equal(self.pattern_lines,other.pattern_lines) and np.array_equal(self.walls,other.walls) and np.array_equal(self.floors, other.floors) and np.array_equal(self.score,other.score) and self.current_player==other.current_player and self.next_first_player==other.next_first_player and self.players==other.players and self.end_of_game == other.end_of_game and self.turn_counter == other.turn_counter
     def new_round(self):
         #Set current player and reset next player and increment the turn counter
         self.current_player=self.next_first_player
+        self.first_player_stats[self.next_first_player-1]+=1
         self.turn_counter += 1
         self.next_first_player=0
         #Game board center starts empty except for the first player token (sixth index).
@@ -138,6 +141,7 @@ class Azul:
                 count = -2 - (self.floors[player]-2)*2
             else:
                 count = -8 - (self.floors[player]-5)*3
+            self.floor_penalty[player] = count
             self.floors[player] = 0
             return count
         def count_wall(player):
@@ -237,7 +241,7 @@ class Azul:
         else:
             self.next_player()
     def get_statistics(self):
-        return {"player_score":self.score[0],"opponent_score":self.score[1],"rounds":self.turn_counter}
+        return {"player_score":self.score[0],"opponent_score":self.score[1],"rounds":self.turn_counter,"percent_first_player":self.first_player_stats[0]/self.first_player_stats.sum()*100,"floor_penalty":-self.floor_penalty[0]}
 
 if __name__ == "__main__":
     game=Azul()
