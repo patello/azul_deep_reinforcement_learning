@@ -2,4 +2,4 @@ import gym
 from neural.agent import Agent
 
 agent = Agent()
-agent.train(20, 200)
+agent.train(2000, 200)

@@ -28,6 +28,9 @@ class Azul:
         self.turn_counter=0
         self.first_player_stats = np.zeros(players)
         self.floor_penalty = np.zeros(players)
+        self.max_combo = np.zeros(players)
+        #0 - Row, 1 - Color, 2 - Column
+        self.completed_lines = np.zeros((players,3))
     def __eq__(self, other):
         return np.array_equal(self.game_board_displays,other.game_board_displays) and np.array_equal(self.game_board_center,other.game_board_center) and np.array_equal(self.pattern_lines,other.pattern_lines) and np.array_equal(self.walls,other.walls) and np.array_equal(self.floors, other.floors) and np.array_equal(self.score,other.score) and self.current_player==other.current_player and self.next_first_player==other.next_first_player and self.players==other.players and self.end_of_game == other.end_of_game and self.turn_counter == other.turn_counter
     def new_round(self):
@@ -194,11 +197,13 @@ class Azul:
                             pos_count+=2
                         else:
                             pos_count+=1
+                        self.max_combo[player]=max(self.max_combo[player],pos_count)
                         #Check if the row is complete by iterating through it
                         for i in range(5):
                             if self.walls[player,pattern,i]:
                                 if i == 4:
                                     bonus_count+=2
+                                    self.completed_lines[player,0]+=1
                             else:
                                 break
                         #Check if the column (color) is complete by iterating through it
@@ -206,6 +211,7 @@ class Azul:
                             if self.walls[player,j,color]:
                                 if j == 4:
                                     bonus_count+=10
+                                    self.completed_lines[player,1]+=1
                             else:
                                 break
                         #Check if the vertical column (actual column) is complete by iterating through it
@@ -213,6 +219,7 @@ class Azul:
                             if self.walls[player,k,from_wall_position(to_wall_position(color,pattern),k)]:
                                 if k == 4:
                                     bonus_count+=7
+                                    self.completed_lines[player,2]+=1
                             else:
                                 break
                         count += pos_count + bonus_count
@@ -241,7 +248,7 @@ class Azul:
         else:
             self.next_player()
     def get_statistics(self):
-        return {"player_score":self.score[0],"opponent_score":self.score[1],"rounds":self.turn_counter,"percent_first_player":self.first_player_stats[0]/self.first_player_stats.sum()*100,"floor_penalty":-self.floor_penalty[0]}
+        return {"player_score":self.score[0],"opponent_score":self.score[1],"rounds":self.turn_counter,"percent_first_player":self.first_player_stats[0]/self.first_player_stats.sum()*100,"floor_penalty":-self.floor_penalty[0],"max_combo":self.max_combo[0],"completed_rows":self.completed_lines[0,0],"completed_columns":self.completed_lines[0,2],"completed_colors":self.completed_lines[0,1]}
 
 if __name__ == "__main__":
     game=Azul()

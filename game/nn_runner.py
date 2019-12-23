@@ -10,10 +10,10 @@ random.seed()
 # Class till will help the neural network to run properly
 class NNRunner:
     class GameStatistics():
-        def __init__(self,nr_of_points=10):
+        def __init__(self,nr_of_points=1000):
             self.nr_of_points=nr_of_points
-            self.statisticsBuffer = {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty"]}
-            self.statistics =  {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty"]}
+            self.statisticsBuffer = {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty","max_combo","completed_rows","completed_columns","completed_colors"]}
+            self.statistics =  {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty","max_combo","completed_rows","completed_columns","completed_colors"]}
         def update(self,statistics):
             for stat in statistics:
                 self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])

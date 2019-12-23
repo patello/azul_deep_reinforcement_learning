@@ -9,7 +9,7 @@ import csv
 class Agent():
 
     class AgentStatistics():
-        def __init__(self,nr_of_points=10):
+        def __init__(self,nr_of_points=1000):
             self.nr_of_points=nr_of_points
             self.statisticsBuffer = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
             self.statistics = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
@@ -28,8 +28,8 @@ class Agent():
         self.num_in = 136
         self.num_out = 180
 
-        self.ac_net = ActorCritic(self.num_in, self.num_out)
-        #self.ac_net = torch.load('/usr/neural/models/blue_adam_v01.mx')
+        #self.ac_net = ActorCritic(self.num_in, self.num_out)
+        self.ac_net = torch.load('/usr/neural/models/blue_adam_v01.mx')
         self.ac_optimizer = optim.Adam(self.ac_net.parameters(), lr=learning_rate)
         
     def update(self, rewards, values, next_value, log_probs, entropy):
@@ -101,7 +101,7 @@ class Agent():
 
             _, _, next_value = self.get_ac_output(state,done=True)
             self.update(rewards, values, next_value, log_probs, entropy_term)
-            if (episode+1) % 10 == 0:                    
+            if (episode+1) % 1000 == 0:                    
                 #print("episode: " + str(episode) + ": " + str(episode_reward)) 
                 with open('/usr/neural/results/temp.csv', mode="a+") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
