@@ -36,15 +36,16 @@ class Agent():
             self.ac_net = torch.load("/usr/neural/models/"+base_net_file+".mx")
         self.ac_optimizer = optim.Adam(self.ac_net.parameters(), lr=learning_rate)
         
-    def update(self, rewards, values, next_value, log_probs, entropy):
+    def update(self, rewards, values, log_probs, entropy):
 
         qvals = np.zeros((len(values),1))
-        qval = 0
-
-        for t in reversed(range(len(rewards))):
-            qval = rewards[t] + self.gamma * qval
-            qvals[t] = [qval]
         
+        for episode in range(len(rewards)):
+            qval = 0
+            for t in reversed(range(len(rewards[episode]))):
+                qval = rewards[episode][t] + self.gamma * qval
+                qvals[t] = [qval]
+
         values = torch.stack(values).squeeze(2)
         qvals = torch.FloatTensor(qvals)
         log_probs = torch.stack(log_probs)
@@ -68,45 +69,45 @@ class Agent():
         action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
         return action, policy_dist, value
 
-    def train(self, max_episode, net_name, batch_size=1):
+    def train(self, max_episode, net_name, batch_size=100):
         with open('/usr/neural/results/'+net_name+'.csv', mode="w") as csv_file:
-            result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            result_file.writerow(["episode"]+list(self.agent_statistics.statistics.keys())+list(self.env.game_statistics.statistics.keys()))
-        for episode in range(max_episode):
+                    result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    result_file.writerow(["episode"]+list(self.agent_statistics.statistics.keys())+list(self.env.game_statistics.statistics.keys()))
+        for batch in range(batch_size):
             rewards = []
             values = []
             log_probs = []
             entropy_term = 0
-            episode_reward = 0
-            
-            self.env.game_statistics.update(self.env.game.get_statistics())
-            self.env.reset()
-            state = self.env.get_state_flat()
-            #Fixed range for 200 max steps, should be sufficient.
-            for steps in range(200):
-                action, policy_dist, value = self.get_ac_output(state)
-                reward, done = self.env.step(action)  
-                new_state = self.env.get_state_flat()
-
-                log_prob = torch.log(policy_dist.squeeze(0)[action])
+            for episode in range(int(max_episode/batch_size)):
+                rewards.append([])
+                episode_reward = 0
                 
-                entropy = -torch.sum(policy_dist.mean() * torch.log(policy_dist))
+                self.env.game_statistics.update(self.env.game.get_statistics())
+                self.env.reset()
+                state = self.env.get_state_flat()
+                #Fixed range for 200 max steps, should be sufficient.
+                for steps in range(200):
+                    action, policy_dist, value = self.get_ac_output(state)
+                    reward, done = self.env.step(action)  
+                    new_state = self.env.get_state_flat()
 
-                rewards.append(reward)
-                values.append(value)
-                log_probs.append(log_prob)
-                entropy_term += entropy
-                state = new_state
-                episode_reward += reward
-                if done:
-                    if episode % self.mean_points == 0:
-                        torch.save(self.ac_net,"/usr/neural/models/"+net_name+".mx")
-                    break
+                    log_prob = torch.log(policy_dist.squeeze(0)[action])
+                    
+                    entropy = -torch.sum(policy_dist.mean() * torch.log(policy_dist))
 
-            _, _, next_value = self.get_ac_output(state,done=True)
-            self.update(rewards, values, next_value, log_probs, entropy_term)
-            if (episode+1) % self.mean_points == 0:                    
-                with open('/usr/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
-                    result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    result_file.writerow(np.concatenate([[episode+1],[stat_value[-1] for stat_value in self.agent_statistics.statistics.values()],[stat_value[-1] for stat_value in self.env.game_statistics.statistics.values()]]))
-            #,
+                    rewards[episode].append(reward)
+                    values.append(value)
+                    log_probs.append(log_prob)
+                    entropy_term += entropy
+                    state = new_state
+                    episode_reward += reward
+                    if done:
+                        if episode % self.mean_points == 0:
+                            torch.save(self.ac_net,"/usr/neural/models/"+net_name+".mx")
+                        break
+            self.update(rewards, values, log_probs, entropy_term)
+            #if (batch*batch_size+1) % self.mean_points == 0:                    
+            with open('/usr/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
+                result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                result_file.writerow(np.concatenate([[batch*batch_size+1],[stat_value[-1] for stat_value in self.agent_statistics.statistics.values()],[stat_value[-1] for stat_value in self.env.game_statistics.statistics.values()]]))
+        
