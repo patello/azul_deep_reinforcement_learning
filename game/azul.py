@@ -141,7 +141,7 @@ class Azul:
                 count = -2 - (self.floors[player]-2)*2
             else:
                 count = -8 - (self.floors[player]-5)*3
-            self.floor_penalty[player] = count
+            self.floor_penalty[player] += count
             self.floors[player] = 0
             return count
         def count_wall(player):
