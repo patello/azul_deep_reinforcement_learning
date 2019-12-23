@@ -9,7 +9,7 @@ import csv
 class Agent():
 
     class AgentStatistics():
-        def __init__(self,nr_of_points=1000):
+        def __init__(self,nr_of_points=10):
             self.nr_of_points=nr_of_points
             self.statisticsBuffer = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
             self.statistics = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
@@ -20,16 +20,20 @@ class Agent():
                     self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
                     self.statisticsBuffer[stat] = np.empty(0)
                 
-    def __init__(self, use_cnn=False, learning_rate=3e-4, gamma=0.99, buffer_size=10000):
-        self.env = NNRunner()
-        self.agent_statistics = Agent.AgentStatistics()
+    def __init__(self, base_net_file=None, base_net="Blue Adam", mean_points=1000, use_cnn=False, learning_rate=3e-4, gamma=0.99, buffer_size=10000):
+        self.env = NNRunner(mean_points=mean_points)
+        self.mean_points=mean_points
+        self.agent_statistics = Agent.AgentStatistics(nr_of_points=mean_points)
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.num_in = 136
         self.num_out = 180
 
-        #self.ac_net = ActorCritic(self.num_in, self.num_out)
-        self.ac_net = torch.load('/usr/neural/models/blue_adam_v01.mx')
+        if base_net_file is None:
+            if base_net == "Blue Adam":
+                self.ac_net = ActorCritic(self.num_in, self.num_out)
+        else:
+            self.ac_net = torch.load("/usr/neural/models/"+base_net_file+".mx")
         self.ac_optimizer = optim.Adam(self.ac_net.parameters(), lr=learning_rate)
         
     def update(self, rewards, values, next_value, log_probs, entropy):
@@ -64,8 +68,8 @@ class Agent():
         action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
         return action, policy_dist, value
 
-    def train(self, max_episode, max_step):
-        with open('/usr/neural/results/temp.csv', mode="w") as csv_file:
+    def train(self, max_episode, net_name, batch_size=1):
+        with open('/usr/neural/results/'+net_name+'.csv', mode="w") as csv_file:
             result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             result_file.writerow(["episode"]+list(self.agent_statistics.statistics.keys())+list(self.env.game_statistics.statistics.keys()))
         for episode in range(max_episode):
@@ -78,7 +82,8 @@ class Agent():
             self.env.game_statistics.update(self.env.game.get_statistics())
             self.env.reset()
             state = self.env.get_state_flat()
-            for steps in range(max_step):
+            #Fixed range for 200 max steps, should be sufficient.
+            for steps in range(200):
                 action, policy_dist, value = self.get_ac_output(state)
                 reward, done = self.env.step(action)  
                 new_state = self.env.get_state_flat()
@@ -94,16 +99,14 @@ class Agent():
                 state = new_state
                 episode_reward += reward
                 if done:
-                    #if episode % 10 == 0:
-                        #Save the model every 10000th iteration. Hopefully overwrites the old one.
-                    #    torch.save(self.ac_net,"/usr/neural/models/blue_adam_v01.mx")
+                    if episode % self.mean_points == 0:
+                        torch.save(self.ac_net,"/usr/neural/models/"+net_name+".mx")
                     break
 
             _, _, next_value = self.get_ac_output(state,done=True)
             self.update(rewards, values, next_value, log_probs, entropy_term)
-            if (episode+1) % 1000 == 0:                    
-                #print("episode: " + str(episode) + ": " + str(episode_reward)) 
-                with open('/usr/neural/results/temp.csv', mode="a+") as csv_file:
+            if (episode+1) % self.mean_points == 0:                    
+                with open('/usr/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     result_file.writerow(np.concatenate([[episode+1],[stat_value[-1] for stat_value in self.agent_statistics.statistics.values()],[stat_value[-1] for stat_value in self.env.game_statistics.statistics.values()]]))
             #,

@@ -10,7 +10,7 @@ random.seed()
 # Class till will help the neural network to run properly
 class NNRunner:
     class GameStatistics():
-        def __init__(self,nr_of_points=1000):
+        def __init__(self,nr_of_points=10):
             self.nr_of_points=nr_of_points
             self.statisticsBuffer = {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty","max_combo","completed_rows","completed_columns","completed_colors"]}
             self.statistics =  {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty","max_combo","completed_rows","completed_columns","completed_colors"]}
@@ -21,9 +21,9 @@ class NNRunner:
                     self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
                     self.statisticsBuffer[stat] = np.empty(0)
                 
-    def __init__(self):
+    def __init__(self,mean_points=1000):
         self.game = Azul()
-        self.game_statistics = NNRunner.GameStatistics()
+        self.game_statistics = NNRunner.GameStatistics(nr_of_points=mean_points)
         # Start the game with a set board
         self.game.new_round()
         # NNRunner will keep track of the players relative score, in order to see how much is gained
