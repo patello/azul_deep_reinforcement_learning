@@ -9,21 +9,21 @@ import csv
 class Agent():
 
     class AgentStatistics():
-        def __init__(self,nr_of_points=10):
-            self.nr_of_points=nr_of_points
+        def __init__(self):
             self.statisticsBuffer = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
             self.statistics = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
         def update(self,statistics):
             for stat in statistics:
                 self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])
-                if self.statisticsBuffer[stat].size >= self.nr_of_points:
-                    self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
-                    self.statisticsBuffer[stat] = np.empty(0)
+        def get_stats(self):
+            for stat in self.statistics:
+                self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
+                self.statisticsBuffer[stat] = np.empty(0)
+            return self.statistics
                 
-    def __init__(self, base_net_file=None, base_net="Blue Adam", mean_points=1000, use_cnn=False, learning_rate=3e-4, gamma=0.99, buffer_size=10000):
-        self.env = NNRunner(mean_points=mean_points)
-        self.mean_points=mean_points
-        self.agent_statistics = Agent.AgentStatistics(nr_of_points=mean_points)
+    def __init__(self, base_net_file=None, base_net="Blue Adam", use_cnn=False, learning_rate=3e-4, gamma=0.99, buffer_size=10000):
+        self.env = NNRunner()
+        self.agent_statistics = Agent.AgentStatistics()
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.num_in = 136
@@ -58,7 +58,7 @@ class Agent():
         self.ac_optimizer.zero_grad()
         ac_loss.backward()
         self.ac_optimizer.step()
-        statistics = {"reward" : np.sum(rewards), "actor_loss" : actor_loss.detach().numpy().squeeze(0), "critic_loss" : critic_loss.detach().numpy().squeeze(0), "ac_loss" : ac_loss.detach().numpy().squeeze(0)}
+        statistics = {"reward" : np.mean([np.sum(reward) for reward in rewards]), "actor_loss" : actor_loss.detach().numpy().squeeze(0), "critic_loss" : critic_loss.detach().numpy().squeeze(0), "ac_loss" : ac_loss.detach().numpy().squeeze(0)}
         self.agent_statistics.update(statistics)
 
     def get_ac_output(self, state,done=False):
@@ -72,7 +72,7 @@ class Agent():
     def train(self, net_name, batch_size=1000, batches=1000,):
         with open('/usr/neural/results/'+net_name+'.csv', mode="w") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    result_file.writerow(["episode"]+list(self.agent_statistics.statistics.keys())+list(self.env.game_statistics.statistics.keys()))
+                    result_file.writerow(["batch"]+list(self.agent_statistics.statistics.keys())+list(self.env.game_statistics.statistics.keys()))
         for batch in range(batches):
             rewards = []
             values = []
@@ -102,12 +102,12 @@ class Agent():
                     episode_reward += reward
                     if done:
                         self.env.game_statistics.update(self.env.game.get_statistics())
-                        if episode % self.mean_points == 0:
+                        if (batch +1)% 1000 == 0:
                             torch.save(self.ac_net,"/usr/neural/models/"+net_name+".mx")
                         break
             self.update(rewards, values, log_probs, entropy_term)
-            #if (batch*batch_size+1) % self.mean_points == 0:                    
-            with open('/usr/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
-                result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                result_file.writerow(np.concatenate([[batch*batch_size+1],[stat_value[-1] for stat_value in self.agent_statistics.statistics.values()],[stat_value[-1] for stat_value in self.env.game_statistics.statistics.values()]]))
-        
+            if (batch+1) % max(1,(batches/1000)) == 0:                    
+                with open('/usr/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
+                    result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    result_file.writerow(np.concatenate([[batch+1],[stat_value[-1] for stat_value in self.agent_statistics.get_stats().values()],[stat_value[-1] for stat_value in self.env.game_statistics.get_stats().values()]]))
+            
