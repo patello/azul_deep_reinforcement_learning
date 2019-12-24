@@ -69,20 +69,19 @@ class Agent():
         action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
         return action, policy_dist, value
 
-    def train(self, max_episode, net_name, batch_size=100):
+    def train(self, net_name, batch_size=1000, batches=1000,):
         with open('/usr/neural/results/'+net_name+'.csv', mode="w") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     result_file.writerow(["episode"]+list(self.agent_statistics.statistics.keys())+list(self.env.game_statistics.statistics.keys()))
-        for batch in range(batch_size):
+        for batch in range(batches):
             rewards = []
             values = []
             log_probs = []
             entropy_term = 0
-            for episode in range(int(max_episode/batch_size)):
+            for episode in range(batch_size):
                 rewards.append([])
                 episode_reward = 0
                 
-                self.env.game_statistics.update(self.env.game.get_statistics())
                 self.env.reset()
                 state = self.env.get_state_flat()
                 #Fixed range for 200 max steps, should be sufficient.
@@ -102,6 +101,7 @@ class Agent():
                     state = new_state
                     episode_reward += reward
                     if done:
+                        self.env.game_statistics.update(self.env.game.get_statistics())
                         if episode % self.mean_points == 0:
                             torch.save(self.ac_net,"/usr/neural/models/"+net_name+".mx")
                         break
