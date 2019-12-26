@@ -13,7 +13,7 @@ if len(sys.argv) < 3:
 else:
     net_name=sys.argv[2]
 
-batches=1000
+batches=1000000
 
 agent = Agent(base_net_file=None,learning_rate=3e-4)
 agent.train(batch_size=batch_size,batches=batches,net_name=net_name)
