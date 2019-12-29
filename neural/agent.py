@@ -33,7 +33,7 @@ class Agent():
             if base_net == "Blue Adam":
                 self.ac_net = ActorCritic(self.num_in, self.num_out)
         else:
-            self.ac_net = torch.load("/usr/neural/models/"+base_net_file+".mx")
+            self.ac_net = torch.load("/neural/models/"+base_net_file+".mx")
         self.ac_optimizer = optim.Adam(self.ac_net.parameters(), lr=learning_rate)
         
     def update(self, rewards, values, log_probs, entropy):
@@ -74,7 +74,7 @@ class Agent():
         return action, policy_dist, value
 
     def train(self, net_name, batch_size=1000, batches=1000,):
-        with open('/usr/neural/results/'+net_name+'.csv', mode="w") as csv_file:
+        with open('/neural/results/'+net_name+'.csv', mode="w") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     result_file.writerow(["batch"]+list(self.agent_statistics.statistics.keys())+list(self.env.game_statistics.statistics.keys()))
         for batch in range(batches):
@@ -107,11 +107,11 @@ class Agent():
                     if done:
                         self.env.game_statistics.update(self.env.game.get_statistics())
                         if (batch +1)% 1000 == 0:
-                            torch.save(self.ac_net,"/usr/neural/models/"+net_name+".mx")
+                            torch.save(self.ac_net,"/neural/models/"+net_name+".mx")
                         break
             self.update(rewards, values, log_probs, entropy_term)
             if (batch+1) % max(1,(batches/1000)) == 0:                    
-                with open('/usr/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
+                with open('/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     result_file.writerow(np.concatenate([[batch+1],[stat_value[-1] for stat_value in self.agent_statistics.get_stats().values()],[stat_value[-1] for stat_value in self.env.game_statistics.get_stats().values()]]))
             
