@@ -30,14 +30,14 @@ def test_nnrunner_step():
     assert np.array_equal(nnrunner.game.score,np.zeros(2))
     #Load game_end_of_round_2 to see that game_board gets reset and player gets back to one
     nnrunner=NNRunner()
-    nnrunner.game.import_JSON("/usr/tests/resources/game_end_of_round_2.json")
+    nnrunner.game.import_JSON("/tests/resources/game_end_of_round_2.json")
     reward, end_of_game = nnrunner.step(nn_serialize(0,4,1))
     assert nnrunner.game.current_player == 1
     #For this scenario, game should have ended after one step
     assert not end_of_game
     #Load game_end_of_round_2 to see that the game ends if the right steps are made
     nnrunner=NNRunner()
-    nnrunner.game.import_JSON("/usr/tests/resources/game_end_of_round_2.json")
+    nnrunner.game.import_JSON("/tests/resources/game_end_of_round_2.json")
     nnrunner.player_score=49-32
     random.seed(1)
     reward, end_of_game = nnrunner.step(nn_serialize(0,0,1))
@@ -46,7 +46,7 @@ def test_nnrunner_step():
     assert nnrunner.player_score==nnrunner.game.score[0]-nnrunner.game.score[1]
     #Load game_end_of_round_3 to see that game_board gets reset
     nnrunner=NNRunner()
-    nnrunner.game.import_JSON("/usr/tests/resources/game_end_of_round_3.json")
+    nnrunner.game.import_JSON("/tests/resources/game_end_of_round_3.json")
     nnrunner.player_score=49-32
     reward, end_of_game = nnrunner.step(nn_serialize(0,3,0))
     #For this scenario, game should not have ended after one step
@@ -86,7 +86,7 @@ def test_check_all_valid():
     #On a new board, none of the colors should be available or displays, pattern availability is undefined (?)
     assert np.array_equal(check_all_valid(game),np.zeros(180,dtype="bool"))
     #Sample all the actions that should be available on the resource called "game_first_round"
-    game.import_JSON("/usr/tests/resources/game_first_round.json")
+    game.import_JSON("/tests/resources/game_first_round.json")
     all_valid = check_all_valid(game)
     for j in [0,1,2]:
         for k in range(6):
@@ -104,13 +104,13 @@ def test_check_all_valid():
         for k in range(6):
             assert all_valid[nn_serialize(5,j,k)]
     #Check that center is valid when there are other colors there
-    game.import_JSON("/usr/tests/resources/game_sample_1.json")
+    game.import_JSON("/tests/resources/game_sample_1.json")
     all_valid = check_all_valid(game)
     assert all_valid[nn_serialize(0,0,4)]
 
 def test_opponent_random():
     game=Azul()
-    game.import_JSON("/usr/tests/resources/game_first_round.json")
+    game.import_JSON("/tests/resources/game_first_round.json")
     all_valid = check_all_valid(game)
     #Make a number of random moves and check that they are between 0..180 and that they are valid
     moves=np.zeros(1000,dtype="int")

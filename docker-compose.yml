@@ -4,9 +4,9 @@ services:
     build: ./
     container_name: neural-net
     volumes:
-      - ./neural:/usr/neural
-      - ./game:/usr/game
-      - ./tests:/usr/tests
+      - ./neural:/neural
+      - ./game:/game
+      - ./tests:/tests
   # Added as part of debugging. Probably not needed
     stdin_open: true
     tty: true
