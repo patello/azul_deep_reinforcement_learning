@@ -58,7 +58,7 @@ def test_azul_eq():
     game2.new_round()
     assert game1!=game2
 
-def test_azul_import():
+def test_azul_import_JSON():
     #Test that importing the empty game reference is equal to a new game.
     game=Azul()
     imported_game=Azul()
@@ -69,7 +69,7 @@ def test_azul_import():
     game=Azul()
     game.new_round()
     imported_game=Azul()
-    imported_game.import_JSON("/usr/tests/resources/game_first_round.json")
+    imported_game.import_JSON("/usr/tests/resources/game_first_round_seed_1.json")
     assert game == imported_game
     random.seed()
 
