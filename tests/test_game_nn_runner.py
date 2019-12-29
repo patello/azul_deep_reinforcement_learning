@@ -1,5 +1,6 @@
 from game.nn_runner import *
 from neural.agent import Agent
+import copy
 import numpy as np
 
 def test_nnrunner_init():
@@ -127,5 +128,13 @@ def test_opponent_random():
         assert all_valid[moves[i]]
     assert np.count_nonzero(moves > 179) == 0
     assert np.count_nonzero(moves < 0) == 0
+
+def test_nn_runner_train():
+    agent=Agent()
+    nnrunner = NNRunner(agent)
+    #Test that training with different batch sizes are possible
+    nnrunner.train(batch_size=1,batches=1)
+    nnrunner.train(batch_size=2,batches=1)
+    nnrunner.train(batch_size=1,batches=2)
 
     

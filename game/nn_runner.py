@@ -58,7 +58,7 @@ class NNRunner:
         self.game.new_round()
         self.player_score = 0
         self.move_counter = 0
-    def train(self, net_name, batch_size=1000, batches=1000):
+    def train(self, net_name=None, batch_size=1000, batches=1000):
         if net_name is not None:
             with open('/neural/results/'+net_name+'.csv', mode="w") as csv_file:
                         result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
