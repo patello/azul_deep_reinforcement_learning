@@ -1,12 +1,14 @@
 import pytest
 import numpy as np
 from neural.model import *
+from neural.agent import Agent
 from game.nn_runner import NNRunner
 
 def test_model_forward():
     ac_net = ActorCritic(136,180)
-    runner = NNRunner()
-    state = Variable(torch.from_numpy(runner.get_state_flat()).float().unsqueeze(0))
+    agent=Agent()
+    nnrunner = NNRunner(agent)
+    state = Variable(torch.from_numpy(nnrunner.get_state_flat()).float().unsqueeze(0))
     #Test that the correct thing gets returned from the forward pass
     value, policy_dist = ac_net.forward(state)
     assert type(value)==torch.Tensor
