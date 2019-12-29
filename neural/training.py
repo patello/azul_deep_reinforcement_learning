@@ -9,7 +9,7 @@ if len(sys.argv) < 2:
 else:
     batch_size = int(sys.argv[1])
 if len(sys.argv) < 3:
-    net_name="temp"
+    net_name=None
 else:
     net_name=sys.argv[2]
 

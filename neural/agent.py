@@ -73,10 +73,11 @@ class Agent():
         action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
         return action, policy_dist, value
 
-    def train(self, net_name, batch_size=1000, batches=1000,):
-        with open('/neural/results/'+net_name+'.csv', mode="w") as csv_file:
-                    result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    result_file.writerow(["batch"]+list(self.agent_statistics.statistics.keys())+list(self.env.game_statistics.statistics.keys()))
+    def train(self, net_name, batch_size=1000, batches=1000):
+        if net_name is not None:
+            with open('/neural/results/'+net_name+'.csv', mode="w") as csv_file:
+                        result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                        result_file.writerow(["batch"]+list(self.agent_statistics.statistics.keys())+list(self.env.game_statistics.statistics.keys()))
         for batch in range(batches):
             rewards = []
             values = []
@@ -106,11 +107,11 @@ class Agent():
                     episode_reward += reward
                     if done:
                         self.env.game_statistics.update(self.env.game.get_statistics())
-                        if (batch +1)% 1000 == 0:
+                        if (batch +1)% 1000 == 0 and net_name is not None:
                             torch.save(self.ac_net,"/neural/models/"+net_name+".mx")
                         break
             self.update(rewards, values, log_probs, entropy_term)
-            if (batch+1) % max(1,(batches/1000)) == 0:                    
+            if (batch+1) % max(1,(batches/1000)) == 0 and net_name is not None:                    
                 with open('/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     result_file.writerow(np.concatenate([[batch+1],[stat_value[-1] for stat_value in self.agent_statistics.get_stats().values()],[stat_value[-1] for stat_value in self.env.game_statistics.get_stats().values()]]))
