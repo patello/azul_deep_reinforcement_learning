@@ -12,7 +12,7 @@ class GameEnded(Exception):
     pass
 
 class Azul:
-    def __init__(self,players=2):
+    def __init__(self,players=2,state_file=None):
         self.game_board_displays = np.zeros((5,5),dtype=np.int)
         self.game_board_center = np.zeros(6,dtype=np.int)
         pattern_lines_prototype = np.zeros((5,5),dtype=np.int)
@@ -31,6 +31,8 @@ class Azul:
         self.max_combo = np.zeros(players)
         #0 - Row, 1 - Color, 2 - Column
         self.completed_lines = np.zeros((players,3))
+        if state_file is not None:
+            self.import_JSON(state_file)
     def __eq__(self, other):
         return np.array_equal(self.game_board_displays,other.game_board_displays) and np.array_equal(self.game_board_center,other.game_board_center) and np.array_equal(self.pattern_lines,other.pattern_lines) and np.array_equal(self.walls,other.walls) and np.array_equal(self.floors, other.floors) and np.array_equal(self.score,other.score) and self.current_player==other.current_player and self.next_first_player==other.next_first_player and self.players==other.players and self.end_of_game == other.end_of_game and self.turn_counter == other.turn_counter
     def new_round(self):

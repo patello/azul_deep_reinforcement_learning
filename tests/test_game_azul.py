@@ -25,6 +25,12 @@ def test_azul_init():
         assert np.count_nonzero(Azul(players=i).score) == 0
     # Turn counter should be set to 0
     assert Azul().turn_counter == 0
+    # Test the functionality of creating a game from a json file
+    random.seed(1)
+    game = Azul()
+    game.new_round()
+    assert game == Azul(state_file="/usr/tests/resources/game_first_round_seed_1.json")
+
 def test_azul_new_round():
     game=Azul()
     prev_next_first_player=game.next_first_player
