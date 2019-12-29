@@ -73,6 +73,20 @@ def test_azul_import_JSON():
     assert game == imported_game
     random.seed()
 
+def test_azul_export_JSON(tmp_path):
+    #Test a new game with new round
+    game=Azul()
+    game.new_round()
+    game.export_JSON(tmp_path / "test_export.json")
+    imported_game=Azul()
+    imported_game.import_JSON(tmp_path / "test_export.json")
+    assert game == imported_game
+    #Test a random game, so that all fields are tested
+    game.import_JSON("/usr/tests/resources/game_sample_1.json")
+    game.export_JSON(tmp_path / "test_export.json")
+    imported_game.import_JSON(tmp_path / "test_export.json")
+    assert game == imported_game
+
 def test_azul_move():
     game = Azul()
     #When moving from a display with other colors, some end up in the center. The display shall be empty

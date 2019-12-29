@@ -59,6 +59,21 @@ class Azul:
             self.next_first_player = data["next_first_player"]
             self.players = data["players"]
             self.turn_counter = data["turn_counter"]
+    def export_JSON(self,path):
+        with open(path,"w+") as json_file:
+            data = json.dumps({
+                "game_board_displays": self.game_board_displays.tolist(),
+                "game_board_center": self.game_board_center.tolist(),
+                "pattern_lines": self.pattern_lines.tolist(),
+                "walls": self.walls.tolist(),
+                "floors": self.floors.tolist(),
+                "score": self.score.tolist(),
+                "current_player": self.current_player,
+                "next_first_player": self.next_first_player,
+                "players": self.players,
+                "turn_counter": self.turn_counter
+                })
+            json_file.write(data)
     def move(self, display, color, pattern):
         def add_to_floor(nr_tiles):
             if self.floors[self.current_player-1]+nr_tiles<7:
