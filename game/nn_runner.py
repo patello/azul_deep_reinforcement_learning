@@ -4,6 +4,8 @@ import math
 import random
 import copy
 import numpy as np
+import torch  
+import csv
 
 random.seed()
 
@@ -22,9 +24,10 @@ class NNRunner:
                 self.statisticsBuffer[stat] = np.empty(0)
             return self.statistics
                 
-    def __init__(self):
+    def __init__(self,agent):
         self.game = Azul()
         self.game_statistics = NNRunner.GameStatistics()
+        self.agent=agent
         # Start the game with a set board
         self.game.new_round()
         # NNRunner will keep track of the players relative score, in order to see how much is gained
@@ -55,6 +58,50 @@ class NNRunner:
         self.game.new_round()
         self.player_score = 0
         self.move_counter = 0
+    def train(self, net_name, batch_size=1000, batches=1000):
+        if net_name is not None:
+            with open('/neural/results/'+net_name+'.csv', mode="w") as csv_file:
+                        result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                        result_file.writerow(["batch"]+list(self.agent.agent_statistics.statistics.keys())+list(self.game_statistics.statistics.keys()))
+        for batch in range(batches):
+            rewards = []
+            values = []
+            log_probs = []
+            entropy_term = 0
+            for episode in range(batch_size):
+                rewards.append([])
+                episode_reward = 0
+                
+                self.reset()
+                state = self.get_state_flat()
+                #Fixed range for 200 max steps, should be sufficient.
+                for steps in range(200):
+                    valid_moves = torch.from_numpy(self.get_valid_moves().reshape(1,180))
+                    action, policy_dist, value = self.agent.get_ac_output(state,valid_moves)
+                    reward, done = self.step(action)  
+                    new_state = self.get_state_flat()
+
+                    log_prob = torch.log(policy_dist.squeeze(0)[action])
+                    
+                    entropy = -torch.sum(policy_dist.mean() * torch.log(policy_dist))
+
+                    rewards[episode].append(reward)
+                    values.append(value)
+                    log_probs.append(log_prob)
+                    entropy_term += entropy
+                    state = new_state
+                    episode_reward += reward
+                    if done:
+                        self.game_statistics.update(self.game.get_statistics())
+                        if (batch +1)% 1000 == 0 and net_name is not None:
+                            torch.save(self.agent.ac_net,"/neural/models/"+net_name+".mx")
+                        break
+            self.agent.update(rewards, values, log_probs, entropy_term)
+            if (batch+1) % max(1,(batches/1000)) == 0 and net_name is not None:                    
+                with open('/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
+                    result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    result_file.writerow(np.concatenate([[batch+1],[stat_value[-1] for stat_value in self.agent.agent_statistics.get_stats().values()],[stat_value[-1] for stat_value in self.game_statistics.get_stats().values()]]))
+            
         
 # Returns a integer between 1..180
 def nn_serialize(display,color,pattern):
