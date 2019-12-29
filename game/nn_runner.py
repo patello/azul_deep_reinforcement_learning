@@ -96,7 +96,18 @@ class NNRunner:
                         if (batch +1)% 1000 == 0 and net_name is not None:
                             torch.save(self.agent.ac_net,"/neural/models/"+net_name+".mx")
                         break
-            self.agent.update(rewards, values, log_probs, entropy_term)
+            qvals = np.zeros((len(values),1))
+            offset = 0
+
+            for episode in range(len(rewards)):
+                qval = 0
+                for t in reversed(range(len(rewards[episode]))):
+                    qval = rewards[episode][t] + self.agent.gamma * qval
+                    #Need to apply an offset which is equal to all the episodes of the previous batches, so it ends
+                    #up in the right place
+                    qvals[t+offset] = [qval]
+                offset += len(rewards[episode])
+            self.agent.update(qvals, rewards, values, log_probs, entropy_term)
             if (batch+1) % max(1,(batches/1000)) == 0 and net_name is not None:                    
                 with open('/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)

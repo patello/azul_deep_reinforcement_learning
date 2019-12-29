@@ -34,20 +34,7 @@ class Agent():
             self.ac_net = torch.load("/neural/models/"+base_net_file+".mx")
         self.ac_optimizer = optim.Adam(self.ac_net.parameters(), lr=learning_rate)
         
-    def update(self, rewards, values, log_probs, entropy):
-
-        qvals = np.zeros((len(values),1))
-        offset = 0
-
-        for episode in range(len(rewards)):
-            qval = 0
-            for t in reversed(range(len(rewards[episode]))):
-                qval = rewards[episode][t] + self.gamma * qval
-                #Need to apply an offset which is equal to all the episodes of the previous batches, so it ends
-                #up in the right place
-                qvals[t+offset] = [qval]
-            offset += len(rewards[episode])
-        
+    def update(self, qvals, rewards, values, log_probs, entropy):
         values = torch.stack(values).squeeze(2)
         qvals = torch.FloatTensor(qvals)
         log_probs = torch.stack(log_probs)
