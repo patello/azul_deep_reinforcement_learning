@@ -40,7 +40,7 @@ class Agent():
         log_probs = torch.stack(log_probs)
 
         advantage = qvals - values
-        actor_loss = (-log_probs * advantage).mean()
+        actor_loss = (-log_probs * advantage.squeeze(1)).mean()
         critic_loss = advantage.pow(2).mean()
         #Entropy term becomes infinite when log_probs are zero and needed to be removed from the loss function
         ac_loss = actor_loss + 0.5 * critic_loss# - 0.001 * entropy
