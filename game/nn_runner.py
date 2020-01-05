@@ -39,7 +39,10 @@ class NNRunner:
         self.game.step(*nn_deserialize(i))
         self.move_counter += 1
         while (self.game.current_player != 1 or np.count_nonzero(self.get_valid_moves()) < 2) and not self.game.is_end_of_game():
-            self.game.step(*nn_deserialize(opponent_random(self.game)))
+            state=self.get_state_flat()
+            valid_moves = torch.from_numpy(self.get_valid_moves().reshape(1,180))
+            action,_,_ = self.agent.get_ac_output(state,valid_moves)
+            self.game.step(*nn_deserialize(action))
             self.move_counter += 1
         game_copy=copy.deepcopy(self.game)
         game_copy.count_score()
