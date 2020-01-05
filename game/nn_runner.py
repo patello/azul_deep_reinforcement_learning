@@ -39,7 +39,7 @@ class NNRunner:
         self.game.step(*nn_deserialize(i))
         self.move_counter += 1
         while (self.game.current_player != 1 or np.count_nonzero(self.get_valid_moves()) < 2) and not self.game.is_end_of_game():
-            state=self.get_state_flat()
+            state=self.get_state_flat(perspective=self.game.current_player-1)
             valid_moves = torch.from_numpy(self.get_valid_moves().reshape(1,180))
             action,_,_ = self.agent.get_ac_output(state,valid_moves)
             self.game.step(*nn_deserialize(action))
@@ -50,8 +50,23 @@ class NNRunner:
         reward = new_player_score-self.player_score
         self.player_score = new_player_score
         return reward, self.game.is_end_of_game()
-    def get_state_flat(self):
-        return np.concatenate((self.game.game_board_displays.flatten(),self.game.game_board_center,self.game.pattern_lines.flatten(),self.game.walls.flatten(),self.game.floors,self.game.score,[self.game.next_first_player]))
+    def get_state_flat(self,perspective=0):
+        order = [perspective] + list(set(range(self.game.players))-set([perspective]))
+        if self.game.next_first_player > 0:
+            perspective_next_first_player = ((self.game.next_first_player - 1 - perspective) % self.game.players) + 1
+        else:
+            perspective_next_first_player = 0
+        #Need to make sure this works even for more players. The code below can be used.
+        #print(order)
+        #print("Next: "+str(self.game.next_first_player)+", Perspective: "+str(perspective)+", From perspective: "+str(perspective_next_first_player))
+        return np.concatenate((
+            self.game.game_board_displays.flatten(),
+            self.game.game_board_center,
+            self.game.pattern_lines[order].flatten(),
+            self.game.walls[order].flatten(),
+            self.game.floors[order],
+            self.game.score[order],
+            [perspective_next_first_player]))
     def get_valid_moves(self):
         #TODO: Write test for this
         return check_all_valid(self.game)
