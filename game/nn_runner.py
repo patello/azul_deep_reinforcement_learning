@@ -84,7 +84,11 @@ class NNRunner:
             if done:
                 self.game_statistics.update(self.game.get_statistics())
                 return rewards, values, log_probs, entropy_term
-
+    def run_batch(self, episodes):
+        for episode in range(episodes):
+            self.run_episode()
+        for stat in self.game_statistics.get_stats():
+            print(stat + ": " + str(self.game_statistics.get_stats()[stat][0]))
     def train(self, net_name=None, batch_size=1000, batches=1000):
         if net_name is not None:
             with open('/neural/results/'+net_name+'.csv', mode="w") as csv_file:
