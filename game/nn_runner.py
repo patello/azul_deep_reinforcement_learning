@@ -20,8 +20,9 @@ class NNRunner:
                 self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])
         def get_stats(self):
             for stat in self.statistics:
-                self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
-                self.statisticsBuffer[stat] = np.empty(0)
+                if len(self.statisticsBuffer[stat]) > 0:
+                    self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
+                    self.statisticsBuffer[stat] = np.empty(0)
             return self.statistics
                 
     def __init__(self,agent):
@@ -88,7 +89,7 @@ class NNRunner:
         for episode in range(episodes):
             self.run_episode()
         for stat in self.game_statistics.get_stats():
-            print(stat + ": " + str(self.game_statistics.get_stats()[stat][0]))
+            print(stat + ": " + str(self.game_statistics.get_stats()[stat][-1]))
     def train(self, net_name=None, batch_size=1000, batches=1000):
         if net_name is not None:
             with open('/neural/results/'+net_name+'.csv', mode="w") as csv_file:

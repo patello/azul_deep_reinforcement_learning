@@ -16,8 +16,9 @@ class Agent():
                 self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])
         def get_stats(self):
             for stat in self.statistics:
-                self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
-                self.statisticsBuffer[stat] = np.empty(0)
+                if len(self.statisticsBuffer[stat]) > 0:
+                    self.statistics[stat] = np.append(self.statistics[stat],self.statisticsBuffer[stat].mean())
+                    self.statisticsBuffer[stat] = np.empty(0)
             return self.statistics
                 
     def __init__(self, base_net_file=None, base_net="Blue Adam", learning_rate=3e-4, gamma=0.99):
