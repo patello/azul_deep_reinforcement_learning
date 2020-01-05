@@ -58,10 +58,11 @@ class NNRunner:
         self.game.new_round()
         self.player_score = 0
         self.move_counter = 0
-    def run_episode(self,rewards,values,log_probs,entropy_term):
-        rewards.append([])
-        episode_reward = 0
-        
+    def run_episode(self):
+        rewards = []
+        values = []
+        log_probs = []
+        entropy_term = 0
         self.reset()
         state = self.get_state_flat()
         #Fixed range for 200 max steps, should be sufficient.
@@ -75,15 +76,14 @@ class NNRunner:
             
             entropy = -torch.sum(policy_dist.mean() * torch.log(policy_dist))
 
-            rewards[-1].append(reward)
+            rewards.append(reward)
             values.append(value)
             log_probs.append(log_prob)
             entropy_term += entropy
             state = new_state
-            episode_reward += reward
             if done:
                 self.game_statistics.update(self.game.get_statistics())
-                break
+                return rewards, values, log_probs, entropy_term
 
     def train(self, net_name=None, batch_size=1000, batches=1000):
         if net_name is not None:
@@ -94,21 +94,23 @@ class NNRunner:
             rewards = []
             values = []
             log_probs = []
+            qvals = np.array([])
             entropy_term = 0
             for episode in range(batch_size):
-                self.run_episode(rewards,values,log_probs,entropy_term)
-            qvals = np.zeros((len(values),1))
-            offset = 0
+                episode_rewards, episode_values, episode_log_probs, episode_entropy_term = self.run_episode()
+                rewards.append(np.sum(episode_rewards))
+                values += episode_values
+                log_probs += episode_log_probs
+                entropy_term += episode_entropy_term
+                episode_qvals = np.zeros(len(episode_rewards))
 
-            for episode in range(len(rewards)):
                 qval = 0
-                for t in reversed(range(len(rewards[episode]))):
-                    qval = rewards[episode][t] + self.agent.gamma * qval
-                    #Need to apply an offset which is equal to all the episodes of the previous batches, so it ends
-                    #up in the right place
-                    qvals[t+offset] = [qval]
-                offset += len(rewards[episode])
-            self.agent.update(qvals, rewards, values, log_probs, entropy_term)
+                for t in reversed(range(len(episode_rewards))):
+                    qval = episode_rewards[t] + self.agent.gamma * qval
+                    episode_qvals[t] = qval
+                qvals = np.concatenate((qvals,episode_qvals))
+
+            self.agent.update(np.reshape(qvals,(-1,1)), rewards, values, log_probs, entropy_term)
             if (batch+1) % max(1,(batches/1000)) == 0 and net_name is not None:                    
                 with open('/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
