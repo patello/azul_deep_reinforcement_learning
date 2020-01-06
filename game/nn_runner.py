@@ -25,8 +25,8 @@ class NNRunner:
                     self.statisticsBuffer[stat] = np.empty(0)
             return self.statistics
                 
-    def __init__(self,agent,opponent=None):
-        self.game = Azul()
+    def __init__(self,agent,opponent=None,rules={}):
+        self.game = Azul(rules=rules)
         self.game_statistics = NNRunner.GameStatistics()
         self.agent=agent
         if opponent is not None:
