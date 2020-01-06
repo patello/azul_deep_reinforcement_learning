@@ -25,11 +25,14 @@ class NNRunner:
                     self.statisticsBuffer[stat] = np.empty(0)
             return self.statistics
                 
-    def __init__(self,agent,opponent):
+    def __init__(self,agent,opponent=None):
         self.game = Azul()
         self.game_statistics = NNRunner.GameStatistics()
         self.agent=agent
-        self.opponent=opponent
+        if opponent is not None:
+            self.opponent=opponent
+        else:
+            self.opponent=RandomAgent()
         # Start the game with a set board
         self.game.new_round()
         # NNRunner will keep track of the players relative score, in order to see how much is gained
@@ -161,13 +164,14 @@ def check_all_valid(game):
         all_valid[i]=game.is_legal_move(*nn_deserialize(i))
     return all_valid
 
-def opponent_random(game):
-    weight_table=np.ones(180)
-    #Weight of the straight to floor moves should be lower than the others
-    for i in range(6):
-        for j in range(5):
-            weight_table[nn_serialize(i,j,0)]=0.01
-    all_valid = check_all_valid(game)
-    #Weight should be set to zero for invalid moves
-    weight_table=np.multiply(weight_table,all_valid)
-    return random.choices(range(180),weights=weight_table)[0]
+class RandomAgent():
+    def __init__(self):
+        self.weight_table=np.ones(180)
+        #Weight of the straight to floor moves should be lower than the others
+        for i in range(6):
+            for j in range(5):
+                self.weight_table[nn_serialize(i,j,0)]=0.01
+    def get_ac_output(self,state,valid_moves):
+        #Weight should be set to zero for invalid moves
+        valid_weight_table=np.multiply(self.weight_table,valid_moves.numpy()[0])
+        return random.choices(range(180),weights=valid_weight_table)[0], None, None
