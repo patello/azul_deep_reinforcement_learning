@@ -87,6 +87,13 @@ class NNRunner:
         log_probs = []
         entropy_term = 0
         self.reset()
+        #Check if agent is not first player, in that case, the opponent makes a move first. This should be refactored.
+        while (self.game.current_player != 1):
+            state=self.get_state_flat(perspective=self.game.current_player-1)
+            valid_moves = torch.from_numpy(self.get_valid_moves().reshape(1,180))
+            action,_,_ = self.opponent.get_ac_output(state,valid_moves)
+            self.game.step(*nn_deserialize(action))
+            self.move_counter += 1
         state = self.get_state_flat()
         #Fixed range for 200 max steps, should be sufficient.
         for steps in range(200):
