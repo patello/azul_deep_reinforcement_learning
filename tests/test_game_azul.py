@@ -30,6 +30,26 @@ def test_azul_init():
     game = Azul()
     game.new_round()
     assert game == Azul(state_file="/tests/resources/game_first_round_seed_1.json")
+    #Test that rule determining the first player with an integer
+    game = Azul(rules={"first_player":1})
+    game.new_round()
+    assert game.current_player==1
+    game = Azul(rules={"first_player":2})
+    game.new_round()
+    assert game.current_player==2
+    with pytest.raises(IllegalRule):
+        Azul(rules={"first_player":3})
+    #Test that rule determining the first player with a random choice
+    first_players = np.array([])
+    for i in range(100):
+        game = Azul(rules={"first_player":"Random"})
+        game.new_round()
+        first_players=np.append(first_players,game.current_player)
+    assert np.count_nonzero(first_players==1) > 0
+    assert np.count_nonzero(first_players==2) > 0
+    assert np.count_nonzero(first_players==1)+np.count_nonzero(first_players==2) == 100
+
+
 
 def test_azul_new_round():
     game=Azul()

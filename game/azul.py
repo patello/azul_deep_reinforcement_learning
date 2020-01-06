@@ -11,8 +11,11 @@ class IllegalMove(Exception):
 class GameEnded(Exception):
     pass
 
+class IllegalRule(Exception):
+    pass
+
 class Azul:
-    def __init__(self,players=2,state_file=None):
+    def __init__(self,players=2,state_file=None,rules={}):
         self.game_board_displays = np.zeros((5,5),dtype=np.int)
         self.game_board_center = np.zeros(6,dtype=np.int)
         pattern_lines_prototype = np.zeros((5,5),dtype=np.int)
@@ -22,7 +25,15 @@ class Azul:
         self.floors=np.zeros(players,dtype=np.int)
         self.score=np.zeros(players,dtype=np.int)
         self.current_player=0
-        self.next_first_player=1
+        if "first_player" in rules.keys():
+            if rules["first_player"] == "Random":
+                self.next_first_player = random.choice(list(range(1,players+1)))
+            elif type(rules["first_player"]) == int and 1<=rules["first_player"]<=players:
+                self.next_first_player = rules["first_player"]
+            else:
+                raise IllegalRule
+        else:
+            self.next_first_player=1
         self.players=players
         self.end_of_game=False
         self.turn_counter=0
