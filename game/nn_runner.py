@@ -13,8 +13,8 @@ random.seed()
 class NNRunner:
     class GameStatistics():
         def __init__(self):
-            self.statisticsBuffer = {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty","max_combo","completed_rows","completed_columns","completed_colors"]}
-            self.statistics =  {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty","max_combo","completed_rows","completed_columns","completed_colors"]}
+            self.statisticsBuffer = {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty","max_combo","completed_rows","completed_columns","completed_colors","win_percent"]}
+            self.statistics =  {key : np.empty(0) for key in ["player_score","opponent_score","rounds","percent_first_player","floor_penalty","max_combo","completed_rows","completed_columns","completed_colors","win_percent"]}
         def update(self,statistics):
             for stat in statistics:
                 self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])

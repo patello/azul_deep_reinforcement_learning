@@ -265,7 +265,7 @@ class Azul:
         else:
             self.next_player()
     def get_statistics(self):
-        return {"player_score":self.score[0],"opponent_score":self.score[1],"rounds":self.turn_counter,"percent_first_player":self.first_player_stats[0]/self.first_player_stats.sum()*100,"floor_penalty":-self.floor_penalty[0],"max_combo":self.max_combo[0],"completed_rows":self.completed_lines[0,0],"completed_columns":self.completed_lines[0,2],"completed_colors":self.completed_lines[0,1]}
+        return {"player_score":self.score[0],"opponent_score":self.score[1],"rounds":self.turn_counter,"percent_first_player":self.first_player_stats[0]/self.first_player_stats.sum()*100,"floor_penalty":-self.floor_penalty[0],"max_combo":self.max_combo[0],"completed_rows":self.completed_lines[0,0],"completed_columns":self.completed_lines[0,2],"completed_colors":self.completed_lines[0,1],"win_percent":self.score[0]>self.score[1]}
 
 if __name__ == "__main__":
     game=Azul()
