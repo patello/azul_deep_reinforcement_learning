@@ -27,6 +27,7 @@ class NNRunner:
                 
     def __init__(self,agent,opponent=None,rules={}):
         self.game = Azul(rules=rules)
+        self.rules = rules
         self.game_statistics = NNRunner.GameStatistics()
         self.agent=agent
         if opponent is not None:
@@ -77,7 +78,7 @@ class NNRunner:
     def reset(self):
         #TODO: Write test for this
         #Changed this to only run parts of initialization, since I want to keep game statistics intact
-        self.game = Azul()
+        self.game = Azul(rules=self.rules)
         self.game.new_round()
         self.player_score = 0
         self.move_counter = 0
