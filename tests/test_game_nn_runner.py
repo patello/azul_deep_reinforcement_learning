@@ -115,19 +115,16 @@ def test_check_all_valid():
     #Check that center is valid when there are other colors there
     game.import_JSON("/tests/resources/game_sample_1.json")
     all_valid = check_all_valid(game)
-    assert all_valid[nn_serialize(0,0,4)]
+    assert all_valid[nn_serialize(0,0,4)]    
 
-def test_opponent_random():
-    game=Azul()
-    game.import_JSON("/tests/resources/game_first_round.json")
-    all_valid = check_all_valid(game)
-    #Make a number of random moves and check that they are between 0..180 and that they are valid
-    moves=np.zeros(1000,dtype="int")
-    for i in range(moves.size):
-        moves[i]=opponent_random(game)
-        assert all_valid[moves[i]]
-    assert np.count_nonzero(moves > 179) == 0
-    assert np.count_nonzero(moves < 0) == 0
+def test_nn_runner_run_episode():
+    agent=Agent()
+    nnrunner = NNRunner(agent)
+    rewards, values, log_probs, entropy_term = nnrunner.run_episode()
+    assert len(rewards) == len(values) == len(log_probs)
+    assert len(rewards) > 0
+    #Entropy should be a single value
+    assert list(entropy_term.size())==[]
 
 def test_nn_runner_train():
     agent=Agent()
@@ -136,5 +133,40 @@ def test_nn_runner_train():
     nnrunner.train(batch_size=1,batches=1)
     nnrunner.train(batch_size=2,batches=1)
     nnrunner.train(batch_size=1,batches=2)
+    #Test that training works with a random agent
+    opponent=RandomAgent()
+    nnrunner = NNRunner(agent,opponent)
+    nnrunner.train(batch_size=2,batches=2)
+    #Test that training works with a default agent
+    opponent=Agent()
+    nnrunner = NNRunner(agent,opponent)
+    nnrunner.train(batch_size=2,batches=2)
 
+def test_nn_runner_run_batch():
+    agent=Agent()
+    nnrunner = NNRunner(agent)
+    #Test that training with different batch sizes are possible
+    nnrunner.run_batch(episodes=1)
+    nnrunner.run_batch(episodes=2)
+    #Test that training works with a random agent
+    opponent=RandomAgent()
+    nnrunner = NNRunner(agent,opponent)
+    nnrunner.run_batch(episodes=2)
+    #Test that training works with a default agent
+    opponent=Agent()
+    nnrunner = NNRunner(agent,opponent)
+    nnrunner.run_batch(episodes=2)
+
+def test_random_agent_get_ac_output():
+    opponent=RandomAgent()
+    game=Azul()
+    game.import_JSON("/tests/resources/game_first_round.json")
+    all_valid = check_all_valid(game)
+    #Make a number of random moves and check that they are between 0..180 and that they are valid
+    moves=np.zeros(1000,dtype="int")
+    for i in range(moves.size):
+        moves[i],_,_=opponent.get_ac_output(None,torch.from_numpy(all_valid.reshape(1,180)))
+        assert all_valid[moves[i]]
+    assert np.count_nonzero(moves > 179) == 0
+    assert np.count_nonzero(moves < 0) == 0
     
