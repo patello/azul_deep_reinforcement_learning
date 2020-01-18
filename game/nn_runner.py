@@ -43,7 +43,7 @@ class NNRunner:
     def opponent_move(self):
         state=self.get_state_flat(perspective=self.game.current_player-1)
         valid_moves = torch.from_numpy(self.get_valid_moves().reshape(1,180))
-        action,_,_ = self.opponent.get_ac_output(state,valid_moves)
+        action = self.opponent.get_a_output(state,valid_moves)
         self.game.step(*nn_deserialize(action))
         self.move_counter += 1
     def step(self, i):
