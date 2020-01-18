@@ -51,16 +51,22 @@ class Agent():
         statistics = {"reward" : np.mean(rewards), "actor_loss" : actor_loss.detach().numpy().squeeze(0), "critic_loss" : critic_loss.detach().numpy().squeeze(0), "ac_loss" : ac_loss.detach().numpy().squeeze(0)}
         self.agent_statistics.update(statistics)
 
-    def get_ac_output(self, state, valid_moves):
+    def get_ac_output(self, state, valid_moves, action_selection="Distribution"):
         state = Variable(torch.from_numpy(state).float().unsqueeze(0))
         value = self.ac_net.forward_critic(state)
         policy_dist = self.ac_net.forward_actor(state,valid_moves)
-        action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
+        if action_selection == "Distribution":
+            action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
+        elif action_selection == "Max":
+            action = np.argmax(policy_dist.detach().numpy().squeeze(0))
         return action, policy_dist, value
 
-    def get_a_output(self, state, valid_moves):
+    def get_a_output(self, state, valid_moves, action_selection="Distribution"):
         state = Variable(torch.from_numpy(state).float().unsqueeze(0))
         policy_dist = self.ac_net.forward_actor(state,valid_moves)
-        action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
+        if action_selection == "Distribution":
+            action = np.random.choice(self.num_out, p=policy_dist.detach().numpy().squeeze(0))
+        elif action_selection == "Max":
+            action = np.argmax(policy_dist.detach().numpy().squeeze(0))
         return action
 
