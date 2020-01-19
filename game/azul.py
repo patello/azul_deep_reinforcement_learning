@@ -43,8 +43,10 @@ class Azul:
             self.next_first_player=1
         if "tile_pool" in rules.keys():
             if rules["tile_pool"] == "Random":
+                #Tiles are randomly selected
                 self.tile_pool = "Random"
             elif rules["tile_pool"] == "Lid":
+                #Tiles are placed in the lid when used and impact the likeliehood of adding it to the board
                 self.tile_pool = "Lid"
                 self.box_tiles = np.array([20,20,20,20,20])
                 self.lid_tiles = np.array([0,0,0,0,0])
@@ -68,7 +70,21 @@ class Azul:
         self.game_board_displays=np.zeros((5,5),dtype=np.int)
         for i in range(5):
             for j in range (4):
-                self.game_board_displays[i,random.randrange(0,5,1)] += 1
+                if self.tile_pool == "Random":
+                    #If it is random, we can just select a random number and add to the corresponding index
+                    self.game_board_displays[i,random.randrange(0,5,1)] += 1
+                if self.tile_pool == "Lid":
+                    #If box is empty, put everything from the lid into the box
+                    if np.sum(self.box_tiles) == 0:
+                        self.box_tiles = self.lid_tiles
+                        self.lid_tiles = np.zeros(5)
+                    #If we take from the lid, we need to weigh the choice by the number of tiles in the box
+                    total_box = np.sum(self.box_tiles)
+                    #TODO: Break if box_tiles is still empty
+                    color = random.choices([0,1,2,3,4],weights=[box_color/total_box for box_color in self.box_tiles])
+                    self.game_board_displays[i,color]+=1
+                    self.box_tiles[color] -= 1
+                    self.lid_tiles[color] += 1
     def import_JSON(self,path):
         with open(path) as json_file:
             data = json.load(json_file)
