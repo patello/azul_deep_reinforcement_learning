@@ -25,7 +25,7 @@ class NNRunner:
                     self.statisticsBuffer[stat] = np.empty(0)
             return self.statistics
                 
-    def __init__(self,agent,opponent=None,rules={"first_player":"Random"}):
+    def __init__(self,agent,opponent=None,rules={"first_player":"Random","tile_pool":"Random"}):
         self.game = Azul(rules=rules)
         self.rules = rules
         self.game_statistics = NNRunner.GameStatistics()

@@ -25,6 +25,13 @@ class Azul:
         self.floors=np.zeros(players,dtype=np.int)
         self.score=np.zeros(players,dtype=np.int)
         self.current_player=0
+        self.players=players
+        self.end_of_game=False
+        self.turn_counter=0
+        self.first_player_stats = np.zeros(players)
+        self.floor_penalty = np.zeros(players)
+        self.max_combo = np.zeros(players)
+        #Parse rules
         if "first_player" in rules.keys():
             if rules["first_player"] == "Random":
                 self.next_first_player = random.choice(list(range(1,players+1)))
@@ -34,12 +41,15 @@ class Azul:
                 raise IllegalRule
         else:
             self.next_first_player=1
-        self.players=players
-        self.end_of_game=False
-        self.turn_counter=0
-        self.first_player_stats = np.zeros(players)
-        self.floor_penalty = np.zeros(players)
-        self.max_combo = np.zeros(players)
+        if "tile_pool" in rules.keys():
+            if rules["tile_pool"] == "Random":
+                self.tile_pool = "Random"
+            elif rules["tile_pool"] == "Lid":
+                self.tile_pool = "Lid"
+                self.box_tiles = np.array([20,20,20,20,20])
+                self.lid_tiles = np.array([0,0,0,0,0])
+            else:
+                raise IllegalRule
         #0 - Row, 1 - Color, 2 - Column
         self.completed_lines = np.zeros((players,3))
         if state_file is not None:
