@@ -84,7 +84,6 @@ class Azul:
                     color = random.choices([0,1,2,3,4],weights=[box_color/total_box for box_color in self.box_tiles])
                     self.game_board_displays[i,color]+=1
                     self.box_tiles[color] -= 1
-                    self.lid_tiles[color] += 1
     def import_JSON(self,path):
         with open(path) as json_file:
             data = json.load(json_file)
@@ -150,8 +149,11 @@ class Azul:
                 self.pattern_lines[self.current_player-1,pattern-1,color]=pattern
                 #Minus tile_overflow is the tiles that didn't fit in the pattern line
                 add_to_floor(-tile_overflow)
+                #Moving tiles to lid immediatly, does not change the game logic and we don't have to keep track of color on floor
+                self.lid_tiles[color]+= -tile_overflow
         else:
             add_to_floor(nr_tiles)
+            self.lid_tiles[color]+= nr_tiles
     def is_legal_move(self, display, color, pattern):
         #Check if displays or center should be checked, then check if there exists tiles of the corresponding color in the display. Else return false
         if display > 0:
@@ -210,6 +212,9 @@ class Azul:
                         #In that case, set it to zero and add it to the wall.
                         self.pattern_lines[player,pattern,color]=0
                         self.walls[player,pattern,color] = True
+                        if self.tile_pool == "Lid":
+                            #If tile pool is lid, add pattern (the number of tiles in the pattern - 1) to the lid
+                            self.lid_tiles[color] += pattern 
                         #pos_count will be used to tally the score when checking the neighboaring tiles
                         pos_count = 0
                         bonus_count = 0
