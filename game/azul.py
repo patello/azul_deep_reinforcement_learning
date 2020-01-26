@@ -52,6 +52,8 @@ class Azul:
                 self.lid_tiles = np.array([0,0,0,0,0])
             else:
                 raise IllegalRule
+        else:
+            self.tile_pool = "Random"
         #0 - Row, 1 - Color, 2 - Column
         self.completed_lines = np.zeros((players,3))
         self.rules=rules
@@ -150,12 +152,12 @@ class Azul:
                 self.pattern_lines[self.current_player-1,pattern-1,color]=pattern
                 #Minus tile_overflow is the tiles that didn't fit in the pattern line
                 add_to_floor(-tile_overflow)
-                if self.rules["tile_pool"] == "Lid":
-                    #Moving tiles to lid immediatly, does not change the game logic and we don't have to keep track of color on floor
+                #Moving tiles to lid immediatly, does not change the game logic and we don't have to keep track of color on floor
+                if self.tile_pool == "Lid":
                     self.lid_tiles[color]+= -tile_overflow
         else:
             add_to_floor(nr_tiles)
-            if self.rules["tile_pool"] == "Lid":
+            if self.tile_pool == "Lid":
                 self.lid_tiles[color]+= nr_tiles
     def is_legal_move(self, display, color, pattern):
         #Check if displays or center should be checked, then check if there exists tiles of the corresponding color in the display. Else return false
