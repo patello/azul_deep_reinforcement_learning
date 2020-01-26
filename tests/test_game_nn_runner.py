@@ -29,8 +29,6 @@ def test_nnrunner_step():
     assert nnrunner.game.current_player == 1
     #For this seed, game should not have ended after one step
     assert not end_of_game
-    #With this seed, reward should be 0
-    assert reward == 0
     #Score on the original board should not have been counted
     assert np.array_equal(nnrunner.game.score,np.zeros(2))
     #Load game_end_of_round_2 to see that game_board gets reset and player gets back to one
