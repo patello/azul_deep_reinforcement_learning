@@ -52,6 +52,8 @@ class Azul:
                 self.lid_tiles = np.array([0,0,0,0,0])
             else:
                 raise IllegalRule
+        else:
+            self.tile_pool = "Random"
         #0 - Row, 1 - Color, 2 - Column
         self.completed_lines = np.zeros((players,3))
         if state_file is not None:
