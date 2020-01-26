@@ -152,10 +152,12 @@ class Azul:
                 #Minus tile_overflow is the tiles that didn't fit in the pattern line
                 add_to_floor(-tile_overflow)
                 #Moving tiles to lid immediatly, does not change the game logic and we don't have to keep track of color on floor
-                self.lid_tiles[color]+= -tile_overflow
+                if self.tile_pool == "Lid":
+                    self.lid_tiles[color]+= -tile_overflow
         else:
             add_to_floor(nr_tiles)
-            self.lid_tiles[color]+= nr_tiles
+            if self.tile_pool == "Lid":
+                self.lid_tiles[color]+= nr_tiles
     def is_legal_move(self, display, color, pattern):
         #Check if displays or center should be checked, then check if there exists tiles of the corresponding color in the display. Else return false
         if display > 0:
