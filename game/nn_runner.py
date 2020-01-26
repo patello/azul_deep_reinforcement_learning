@@ -118,6 +118,25 @@ class NNRunner:
             self.run_episode()
         for stat in self.game_statistics.get_stats():
             print(stat + ": " + str(self.game_statistics.get_stats()[stat][-1]))
+    def run_batch_reward_stats(self, episodes):
+        rewards = []
+        values = []
+        qvals = np.array([])
+        for episode in range(episodes):
+            episode_rewards, episode_values, _, _ = self.run_episode()
+            rewards += episode_rewards
+            values += episode_values
+            episode_qvals = np.zeros(len(episode_rewards))
+            qval = 0
+            for t in reversed(range(len(episode_rewards))):
+                qval = episode_rewards[t] + self.agent.gamma * qval
+                episode_qvals[t] = qval
+            qvals = np.concatenate((qvals,episode_qvals))
+        print(','.join(map(str,rewards)))
+        print("\n")
+        print(','.join(map(str,map(lambda x : float(x.detach()),values))))
+        print("\n")
+        print(','.join(map(str,qvals)))
     def train(self, net_name=None, batch_size=1000, batches=1000):
         if net_name is not None:
             with open('/neural/results/'+net_name+'.csv', mode="w") as csv_file:
@@ -142,7 +161,9 @@ class NNRunner:
                     qval = episode_rewards[t] + self.agent.gamma * qval
                     episode_qvals[t] = qval
                 qvals = np.concatenate((qvals,episode_qvals))
-
+            print(np.reshape(qvals,(-1,1)))
+            print(values)
+            print(rewards)
             self.agent.update(np.reshape(qvals,(-1,1)), rewards, values, log_probs, entropy_term)
             if (batch+1) % max(1,(batches/1000)) == 0 and net_name is not None:                    
                 with open('/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
@@ -177,7 +198,7 @@ class RandomAgent():
         for i in range(6):
             for j in range(5):
                 self.weight_table[nn_serialize(i,j,0)]=0.01
-    def get_ac_output(self,state,valid_moves):
+    def get_a_output(self,state,valid_moves):
         #Weight should be set to zero for invalid moves
         valid_weight_table=np.multiply(self.weight_table,valid_moves.numpy()[0])
         return random.choices(range(180),weights=valid_weight_table)[0], None, None
