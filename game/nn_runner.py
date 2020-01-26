@@ -177,7 +177,7 @@ class RandomAgent():
         for i in range(6):
             for j in range(5):
                 self.weight_table[nn_serialize(i,j,0)]=0.01
-    def get_ac_output(self,state,valid_moves):
+    def get_a_output(self,state,valid_moves):
         #Weight should be set to zero for invalid moves
         valid_weight_table=np.multiply(self.weight_table,valid_moves.numpy()[0])
-        return random.choices(range(180),weights=valid_weight_table)[0], None, None
+        return random.choices(range(180),weights=valid_weight_table)[0]
