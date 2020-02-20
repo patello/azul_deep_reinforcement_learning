@@ -4,3 +4,5 @@ __pycache__/
 result.*
 /neural/models/*
 /neural/results/*
+*pyc
+.vscode

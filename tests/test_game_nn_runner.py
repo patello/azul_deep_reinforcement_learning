@@ -1,7 +1,11 @@
 from game.nn_runner import *
 from neural.agent import Agent
 import copy
+import os
 import numpy as np
+
+#Script dir as per suggestion here: https://stackoverflow.com/questions/7165749/open-file-in-a-relative-location-in-python
+script_dir = os.path.dirname(__file__)
 
 def test_nnrunner_init():
     agent=Agent()
@@ -34,7 +38,7 @@ def test_nnrunner_step():
     #Load game_end_of_round_2 to see that game_board gets reset and player gets back to one
     agent=Agent()
     nnrunner = NNRunner(agent)
-    nnrunner.game.import_JSON("/tests/resources/game_end_of_round_2.json")
+    nnrunner.game.import_JSON(script_dir+"/resources/game_end_of_round_2.json")
     reward, end_of_game = nnrunner.step(nn_serialize(0,4,1))
     assert nnrunner.game.current_player == 1
     #For this scenario, game should have ended after one step
@@ -42,7 +46,7 @@ def test_nnrunner_step():
     #Load game_end_of_round_2 to see that the game ends if the right steps are made
     agent=Agent()
     nnrunner = NNRunner(agent)
-    nnrunner.game.import_JSON("/tests/resources/game_end_of_round_2.json")
+    nnrunner.game.import_JSON(script_dir+"/resources/game_end_of_round_2.json")
     nnrunner.player_score=49-32
     random.seed(1)
     reward, end_of_game = nnrunner.step(nn_serialize(0,0,1))
@@ -52,7 +56,7 @@ def test_nnrunner_step():
     #Load game_end_of_round_3 to see that game_board gets reset
     agent=Agent()
     nnrunner = NNRunner(agent)
-    nnrunner.game.import_JSON("/tests/resources/game_end_of_round_3.json")
+    nnrunner.game.import_JSON(script_dir+"/resources/game_end_of_round_3.json")
     nnrunner.player_score=49-32
     reward, end_of_game = nnrunner.step(nn_serialize(0,3,0))
     #For this scenario, game should not have ended after one step
@@ -93,7 +97,7 @@ def test_check_all_valid():
     #On a new board, none of the colors should be available or displays, pattern availability is undefined (?)
     assert np.array_equal(check_all_valid(game),np.zeros(180,dtype="bool"))
     #Sample all the actions that should be available on the resource called "game_first_round"
-    game.import_JSON("/tests/resources/game_first_round.json")
+    game.import_JSON(script_dir+"/resources/game_first_round.json")
     all_valid = check_all_valid(game)
     for j in [0,1,2]:
         for k in range(6):
@@ -111,7 +115,7 @@ def test_check_all_valid():
         for k in range(6):
             assert all_valid[nn_serialize(5,j,k)]
     #Check that center is valid when there are other colors there
-    game.import_JSON("/tests/resources/game_sample_1.json")
+    game.import_JSON(script_dir+"/resources/game_sample_1.json")
     all_valid = check_all_valid(game)
     assert all_valid[nn_serialize(0,0,4)]    
 
@@ -158,7 +162,7 @@ def test_nn_runner_run_batch():
 def test_random_agent_get_ac_output():
     opponent=RandomAgent()
     game=Azul()
-    game.import_JSON("/tests/resources/game_first_round.json")
+    game.import_JSON(script_dir+"/resources/game_first_round.json")
     all_valid = check_all_valid(game)
     #Make a number of random moves and check that they are between 0..180 and that they are valid
     moves=np.zeros(1000,dtype="int")
@@ -167,4 +171,15 @@ def test_random_agent_get_ac_output():
         assert all_valid[moves[i]]
     assert np.count_nonzero(moves > 179) == 0
     assert np.count_nonzero(moves < 0) == 0
+
+def test_nn_runner_run_batch():
+    #Run batch against randomly initialized opponents
+    agent = Agent(base_net_file=None)
+    opponent = Agent(base_net_file=None)
+    nnrunner = NNRunner(agent,opponent)
+    nnrunner.run_batch(1)
+    #Run batch against random opponent
+    opponent = RandomAgent()
+    nnrunner = NNRunner(agent,opponent)
+    nnrunner.run_batch(1)
     

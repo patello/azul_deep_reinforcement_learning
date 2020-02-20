@@ -3,10 +3,10 @@ services:
   neural-net: 
     build: ./
     container_name: neural-net
-    volumes:
-      - ./neural:/neural
-      - ./game:/game
-      - ./tests:/tests
+    #volumes:
+    #  - ./neural:/neural
+    #  - ./game:/game
+    #  - ./tests:/tests
   # Added as part of debugging. Probably not needed
     stdin_open: true
     tty: true

@@ -3,7 +3,7 @@ import torch
 import torch.optim as optim
 from game.nn_runner import NNRunner
 from torch.autograd import Variable
-from model import ActorCritic
+from .model import ActorCritic
 
 class Agent():
 
