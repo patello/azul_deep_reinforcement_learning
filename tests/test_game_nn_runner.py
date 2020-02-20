@@ -144,6 +144,13 @@ def test_nn_runner_train():
     nnrunner = NNRunner(agent,opponent)
     nnrunner.train(batch_size=2,batches=2)
 
+def test_nn_runner_train_1_1(benchmark):
+    #Benchmark test for training with one 
+    agent=Agent()
+    opponent=Agent()
+    nnrunner = NNRunner(agent,opponent)
+    benchmark.pedantic(nnrunner.train,kwargs={"batch_size":1,"batches":1},rounds=10)
+
 def test_nn_runner_run_batch():
     agent=Agent()
     nnrunner = NNRunner(agent)
@@ -172,14 +179,17 @@ def test_random_agent_get_ac_output():
     assert np.count_nonzero(moves > 179) == 0
     assert np.count_nonzero(moves < 0) == 0
 
-def test_nn_runner_run_batch():
+def test_nn_runner_run_batch_agent(benchmark):
     #Run batch against randomly initialized opponents
     agent = Agent(base_net_file=None)
     opponent = Agent(base_net_file=None)
     nnrunner = NNRunner(agent,opponent)
-    nnrunner.run_batch(1)
+    benchmark(nnrunner.run_batch,1)
+
+def test_nn_runner_run_batch_random(benchmark):
     #Run batch against random opponent
+    agent = Agent(base_net_file=None)
     opponent = RandomAgent()
     nnrunner = NNRunner(agent,opponent)
-    nnrunner.run_batch(1)
+    benchmark(nnrunner.run_batch,1)
     
