@@ -9,8 +9,8 @@ class Agent():
 
     class AgentStatistics():
         def __init__(self):
-            self.statisticsBuffer = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
-            self.statistics = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "ac_loss" : np.empty(0)}
+            self.statisticsBuffer = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "entropy_loss": np.empty(0), "ac_loss" : np.empty(0)}
+            self.statistics = {"reward" : np.empty(0), "actor_loss" : np.empty(0), "critic_loss" : np.empty(0), "entropy_loss": np.empty(0), "ac_loss" : np.empty(0)}
         def update(self,statistics):
             for stat in statistics:
                 self.statisticsBuffer[stat]=np.append(self.statisticsBuffer[stat],statistics[stat])
@@ -52,7 +52,7 @@ class Agent():
         self.ac_optimizer.zero_grad()
         ac_loss.backward()
         self.ac_optimizer.step()
-        statistics = {"reward" : np.mean(rewards), "actor_loss" : actor_loss.detach().numpy().squeeze(0), "critic_loss" : critic_loss.detach().numpy().squeeze(0), "ac_loss" : ac_loss.detach().numpy().squeeze(0)}
+        statistics = {"reward" : np.mean(rewards), "actor_loss" : actor_loss.detach().numpy().squeeze(0), "critic_loss" : critic_loss.detach().numpy().squeeze(0), "entropy_loss":entropy_loss.detach().numpy().squeeze(0), "ac_loss" : ac_loss.detach().numpy().squeeze(0)}
         self.agent_statistics.update(statistics)
 
     def get_ac_output(self, state, valid_moves, action_selection="Distribution"):
