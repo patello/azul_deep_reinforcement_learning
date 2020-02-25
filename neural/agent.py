@@ -42,13 +42,18 @@ class Agent():
         entropy = torch.stack(entropy)
 
         advantage = qvals - values
+
+        actor_loss_coeff = 1
+        critic_loss_coeff = 0.5
+        entropy_loss_coeff = 0.1
+        
         actor_loss = (-log_probs * advantage.squeeze(1)).mean()
         critic_loss = advantage.pow(2).mean()
         #In the original implementation, they did not take the mean of the entropy. 
         #I'll use it here to normalize against number of episodes and batches
         #The factor of 0.1 is completely arbitrary
-        entropy_loss = 0.1*entropy.mean()
-        ac_loss = actor_loss + 0.5 * critic_loss + entropy_loss
+        entropy_loss = entropy.mean()
+        ac_loss = actor_loss_coeff*actor_loss + critic_loss_coeff*critic_loss + entropy_loss_coeff*entropy_loss
         self.ac_optimizer.zero_grad()
         ac_loss.backward()
         self.ac_optimizer.step()
