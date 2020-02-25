@@ -123,10 +123,8 @@ def test_nn_runner_run_episode():
     agent=Agent()
     nnrunner = NNRunner(agent)
     rewards, values, log_probs, entropy_term = nnrunner.run_episode()
-    assert len(rewards) == len(values) == len(log_probs)
+    assert len(rewards) == len(values) == len(log_probs) == len(entropy_term)
     assert len(rewards) > 0
-    #Entropy should be a single value
-    assert list(entropy_term.size())==[]
 
 def test_nn_runner_train():
     agent=Agent()

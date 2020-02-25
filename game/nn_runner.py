@@ -88,7 +88,7 @@ class NNRunner:
         rewards = []
         values = []
         log_probs = []
-        entropy_term = 0
+        entropy_terms = []
         self.reset()
         #Check if agent is not first player, in that case, the opponent makes a move first.
         while (self.game.current_player != 1):
@@ -103,16 +103,21 @@ class NNRunner:
 
             log_prob = torch.log(policy_dist.squeeze(0)[action])
             
-            entropy = -torch.sum(policy_dist.mean() * torch.log(policy_dist))
+            #When calculating entropy, we need to only look at the valid policy distribution. Otherwise, entropy is infinite
+            valid_policy_dist = policy_dist.masked_select(valid_moves)
+            
+            #Dividing by the length of the valid_policy_dist. Should give same result as the original code:
+            #-torch.sum(policy_dist.masked_select(valid_moves).mean() * torch.log(policy_dist.masked_select(valid_moves)))
+            entropy = torch.sum(torch.log(valid_policy_dist))/len(valid_policy_dist)
 
             rewards.append(reward)
             values.append(value)
             log_probs.append(log_prob)
-            entropy_term += entropy
+            entropy_terms.append(entropy)
             state = new_state
             if done:
                 self.game_statistics.update(self.game.get_statistics())
-                return rewards, values, log_probs, entropy_term
+                return rewards, values, log_probs, entropy_terms
     def run_batch(self, episodes):
         for episode in range(episodes):
             self.run_episode()
@@ -128,7 +133,7 @@ class NNRunner:
             values = []
             log_probs = []
             qvals = np.array([])
-            entropy_term = 0
+            entropy_term = []
             for episode in range(batch_size):
                 episode_rewards, episode_values, episode_log_probs, episode_entropy_term = self.run_episode()
                 rewards.append(np.sum(episode_rewards))

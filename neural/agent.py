@@ -39,12 +39,16 @@ class Agent():
         values = torch.stack(values).squeeze(2)
         qvals = torch.FloatTensor(qvals)
         log_probs = torch.stack(log_probs)
+        entropy = torch.stack(entropy)
 
         advantage = qvals - values
         actor_loss = (-log_probs * advantage.squeeze(1)).mean()
         critic_loss = advantage.pow(2).mean()
-        #Entropy term becomes infinite when log_probs are zero and needed to be removed from the loss function
-        ac_loss = actor_loss + 0.5 * critic_loss# - 0.001 * entropy
+        #In the original implementation, they did not take the mean of the entropy. 
+        #I'll use it here to normalize against number of episodes and batches
+        #The factor of 0.1 is completely arbitrary
+        entropy_loss = 0.1*entropy.mean()
+        ac_loss = actor_loss + 0.5 * critic_loss + entropy_loss
         self.ac_optimizer.zero_grad()
         ac_loss.backward()
         self.ac_optimizer.step()
