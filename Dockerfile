@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt &&\
 COPY ./neural neural
 COPY ./game game
 COPY ./tests tests
+COPY ./scripts scripts
 ENV PYTHONPATH="/neural:/game:${PYTHONPATH}"
 #Should probably put the python modules somewhere more specific. But this is used so that they can be found.
 CMD ["cat", "/etc/os-release"]
