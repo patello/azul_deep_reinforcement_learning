@@ -108,7 +108,7 @@ class NNRunner:
             
             #Dividing by the length of the valid_policy_dist. Should give same result as the original code:
             #-torch.sum(policy_dist.masked_select(valid_moves).mean() * torch.log(policy_dist.masked_select(valid_moves)))
-            entropy = -torch.sum(torch.log(valid_policy_dist))/len(valid_policy_dist)
+            entropy = -torch.sum(torch.log(valid_policy_dist)).mean()
 
             rewards.append(reward)
             values.append(value)
