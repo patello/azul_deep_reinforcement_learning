@@ -97,18 +97,19 @@ class NNRunner:
         #Fixed range for 200 max steps, should be sufficient.
         for steps in range(200):
             valid_moves = torch.from_numpy(self.get_valid_moves().reshape(1,180))
-            action, policy_dist, value = self.agent.get_ac_output(state,valid_moves)
+            action, policy_dist, log_policy_dist, value = self.agent.get_ac_output(state,valid_moves)
             reward, done = self.step(action)  
             new_state = self.get_state_flat()
 
-            log_prob = torch.log(policy_dist.squeeze(0)[action])
+            log_prob = log_policy_dist.squeeze(0)[action]
             
             #When calculating entropy, we need to only look at the valid policy distribution. Otherwise, entropy is infinite
-            valid_policy_dist = policy_dist.masked_select(valid_moves)
+            #Masking seems to be needed even when the built in log_softmax is used.
+            valid_log_policy_dist = log_policy_dist.masked_select(valid_moves)
             
-            #Dividing by the length of the valid_policy_dist. Should give same result as the original code:
+            #Using the mean() funciton, Should give same result as the original code:
             #-torch.sum(policy_dist.masked_select(valid_moves).mean() * torch.log(policy_dist.masked_select(valid_moves)))
-            entropy = torch.sum(torch.log(valid_policy_dist))/len(valid_policy_dist)
+            entropy = -valid_log_policy_dist.mean()
 
             rewards.append(reward)
             values.append(value)

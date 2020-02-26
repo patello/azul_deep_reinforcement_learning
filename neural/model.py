@@ -31,8 +31,10 @@ class ActorCritic(nn.Module):
         #Check that mask consist of at least one "True", otherwise forward will return NaN
         elif np.sum(mask.numpy()) == 0:
             raise IllegalMask
-        policy_dist = F.relu(self.actor_linear1(state_tensor))
-        policy_dist = self.actor_linear2(policy_dist)
-        policy_dist[~mask]=float('-inf')
-        policy_dist = F.softmax(policy_dist, dim=1)
-        return policy_dist
+        policy = F.relu(self.actor_linear1(state_tensor))
+        policy = self.actor_linear2(policy)
+        policy[~mask]=float('-inf')
+        policy_dist = F.softmax(policy, dim=1)
+        #Also return the built-in log softmax since it is numerically stable
+        log_policy_dist = F.log_softmax(policy, dim=1)
+        return policy_dist, log_policy_dist
