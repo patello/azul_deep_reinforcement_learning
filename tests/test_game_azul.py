@@ -1,7 +1,10 @@
 import pytest
 import os
 import numpy as np
-from game.azul import *
+import random
+
+from azulnet import Azul
+from azulnet.azul import IllegalMove, IllegalRule, GameEnded
 
 #Script dir as per suggestion here: https://stackoverflow.com/questions/7165749/open-file-in-a-relative-location-in-python
 script_dir = os.path.dirname(__file__)

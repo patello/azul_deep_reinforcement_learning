@@ -1,11 +1,11 @@
-from game.azul import Azul
-
 import math
 import random
 import copy
 import numpy as np
 import torch  
 import csv
+
+from azulnet.azul import Azul
 
 random.seed()
 

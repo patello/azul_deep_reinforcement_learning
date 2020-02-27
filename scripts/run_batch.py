@@ -1,5 +1,5 @@
-from neural.agent import Agent
-from game.nn_runner import NNRunner
+from azulnet.agent import Agent
+from azulnet.nn_runner import NNRunner
 
 if __name__ == "__main__":
     agent = Agent(base_net_file=None)

@@ -1,8 +1,10 @@
 import pytest
 import numpy as np
-from neural.model import *
-from neural.agent import Agent
-from game.nn_runner import NNRunner
+import torch
+
+from torch.autograd import Variable
+from azulnet import ActorCritic, Agent, NNRunner
+from azulnet.model import IllegalMask
 
 def test_model_forward():
     ac_net = ActorCritic(136,180)

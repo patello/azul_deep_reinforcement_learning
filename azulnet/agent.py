@@ -1,9 +1,10 @@
 import numpy as np  
 import torch  
 import torch.optim as optim
-from game.nn_runner import NNRunner
+
 from torch.autograd import Variable
-from .model import ActorCritic
+from azulnet.model import ActorCritic
+from azulnet.nn_runner import NNRunner
 
 class Agent():
 

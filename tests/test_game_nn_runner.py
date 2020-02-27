@@ -1,8 +1,11 @@
-from game.nn_runner import *
-from neural.agent import Agent
 import copy
 import os
 import numpy as np
+import torch
+import random
+
+from azulnet import NNRunner, Agent, RandomAgent, Azul
+from azulnet import check_all_valid, nn_serialize, nn_deserialize
 
 #Script dir as per suggestion here: https://stackoverflow.com/questions/7165749/open-file-in-a-relative-location-in-python
 script_dir = os.path.dirname(__file__)
