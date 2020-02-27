@@ -3,7 +3,9 @@ services:
   neural-net: 
     build: ./
     container_name: neural-net
-    #volumes:
+    volumes:
+      - ./neural/results:/neural/results
+      - ./neural/models:/neural/models
     #  - ./neural:/neural
     #  - ./game:/game
     #  - ./tests:/tests
