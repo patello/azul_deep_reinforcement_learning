@@ -33,7 +33,7 @@ class Agent():
             if base_net == "Blue Adam":
                 self.ac_net = ActorCritic(self.num_in, self.num_out)
         else:
-            self.ac_net = torch.load("/neural/models/"+base_net_file+".mx")
+            self.ac_net = torch.load("/results/"+base_net_file+".mx")
         self.ac_optimizer = optim.Adam(self.ac_net.parameters(), lr=learning_rate)
         
     def update(self, qvals, rewards, values, log_probs, entropy):

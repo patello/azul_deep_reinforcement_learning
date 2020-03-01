@@ -4,10 +4,9 @@ FROM python:3.7
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt &&\
     rm requirements.txt
-COPY ./neural neural
-COPY ./game game
-COPY ./tests tests
+COPY ./azulnet azulnet
 COPY ./scripts scripts
-ENV PYTHONPATH="/neural:/game:${PYTHONPATH}"
+COPY ./tests tests
+ENV PYTHONPATH="/azulnet:${PYTHONPATH}"
 #Should probably put the python modules somewhere more specific. But this is used so that they can be found.
 CMD ["cat", "/etc/os-release"]

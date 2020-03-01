@@ -4,8 +4,7 @@ services:
     build: ./
     container_name: neural-net
     volumes:
-      - ./neural/results:/neural/results
-      - ./neural/models:/neural/models
+      - ~/results:/results
     #  - ./neural:/neural
     #  - ./game:/game
     #  - ./tests:/tests

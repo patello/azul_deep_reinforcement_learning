@@ -56,7 +56,7 @@ class NNRunner(GameRunner):
             print(stat + ": " + str(self.game_statistics.get_stats()[stat][-1]))
     def train(self, net_name=None, batch_size=1000, batches=1000):
         if net_name is not None:
-            with open('/neural/results/'+net_name+'.csv', mode="w") as csv_file:
+            with open('/results/'+net_name+'.csv', mode="w") as csv_file:
                         result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                         result_file.writerow(["batch"]+list(self.agent.agent_statistics.statistics.keys())+list(self.game_statistics.statistics.keys()))
         for batch in range(batches):
@@ -81,8 +81,8 @@ class NNRunner(GameRunner):
 
             self.agent.update(np.reshape(qvals,(-1,1)), rewards, values, log_probs, entropy_term)
             if (batch+1) % max(1,(batches/1000)) == 0 and net_name is not None:                    
-                with open('/neural/results/'+net_name+'.csv', mode="a+") as csv_file:
+                with open('/results/'+net_name+'.csv', mode="a+") as csv_file:
                     result_file = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     result_file.writerow(np.concatenate([[batch+1],[stat_value[-1] for stat_value in self.agent.agent_statistics.get_stats().values()],[stat_value[-1] for stat_value in self.game_statistics.get_stats().values()]]))
             if (batch +1)% 1000 == 0 and net_name is not None:
-                torch.save(self.agent.ac_net,"/neural/models/"+net_name+".mx")
+                torch.save(self.agent.ac_net,"/results/"+net_name+".mx")
