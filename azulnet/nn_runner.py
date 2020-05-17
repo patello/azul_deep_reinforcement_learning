@@ -10,23 +10,23 @@ from azulnet.game_runner import GameRunner
 random.seed()
 
 # Class till will help the neural network to run properly
-class NNRunner(GameRunner):    
-    def __init__(self,agent,opponent=None,rules={"first_player":"Random","tile_pool":"Lid"}):
+class NNRunner():    
+    def __init__(self,agent,game_runner):
         self.agent=agent
-        super().__init__(opponent, rules)
+        self.game_runner=game_runner
     def run_episode(self):
         rewards = []
         values = []
         log_probs = []
         entropy_terms = []
-        self.reset()
-        state = self.get_state_flat()
+        self.game_runner.reset()
+        state = self.game_runner.get_state_flat()
         #Fixed range for 200 max steps, should be sufficient.
         for steps in range(200):
-            valid_moves = torch.from_numpy(self.get_valid_moves().reshape(1,180))
+            valid_moves = torch.from_numpy(self.game_runner.get_valid_moves().reshape(1,180))
             action, policy_dist, log_policy_dist, value = self.agent.get_ac_output(state,valid_moves)
-            reward, done = self.step(action)  
-            new_state = self.get_state_flat()
+            reward, done = self.game_runner.step(action)  
+            new_state = self.game_runner.get_state_flat()
 
             log_prob = log_policy_dist.squeeze(0)[action]
             
@@ -44,13 +44,13 @@ class NNRunner(GameRunner):
             entropy_terms.append(entropy)
             state = new_state
             if done:
-                self.game_statistics.update(self.game.get_statistics())
+                self.game_runner.game_statistics.update(self.game_runner.game.get_statistics())
                 return rewards, values, log_probs, entropy_terms
     def run_batch(self, episodes):
         for episode in range(episodes):
             self.run_episode()
-        for stat in self.game_statistics.get_stats():
-            print(stat + ": " + str(self.game_statistics.get_stats()[stat][-1]))
+        for stat in self.game_runner.game_statistics.get_stats():
+            print(stat + ": " + str(self.game_runner.game_statistics.get_stats()[stat][-1]))
     def train(self, net_name=None, batch_size=1000, batches=1000):
         if net_name is not None:
             with open('/results/'+net_name+'.csv', mode="w") as csv_file:

@@ -5,12 +5,14 @@ import torch
 from torch.autograd import Variable
 from azulnet import ActorCritic, Agent, NNRunner
 from azulnet.model import IllegalMask
+from azulnet.game_runner import GameRunner
 
 def test_model_forward():
     ac_net = ActorCritic(136,180)
     agent=Agent()
-    nnrunner = NNRunner(agent)
-    state = Variable(torch.from_numpy(nnrunner.get_state_flat()).float().unsqueeze(0))
+    game_runner=GameRunner()
+    nnrunner = NNRunner(agent,game_runner)
+    state = Variable(torch.from_numpy(nnrunner.game_runner.get_state_flat()).float().unsqueeze(0))
     #Test that the correct thing gets returned from the forward pass
     policy_dist, log_policy_dist = ac_net.forward_actor(state)
     value = ac_net.forward_critic(state)
