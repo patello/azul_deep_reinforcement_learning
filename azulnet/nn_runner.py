@@ -21,8 +21,9 @@ class NNRunner():
         entropy_terms = []
         self.game_runner.reset()
         state = self.game_runner.get_state_flat()
-        #Fixed range for 200 max steps, should be sufficient.
-        for steps in range(200):
+        #Run until step returns done=True
+        done = False
+        while not done:
             valid_moves = torch.from_numpy(self.game_runner.get_valid_moves().reshape(1,180))
             action, policy_dist, log_policy_dist, value = self.agent.get_ac_output(state,valid_moves)
             reward, done = self.game_runner.step(action)  
@@ -43,9 +44,7 @@ class NNRunner():
             log_probs.append(log_prob)
             entropy_terms.append(entropy)
             state = new_state
-            if done:
-                self.game_runner.game_statistics.update(self.game_runner.game.get_statistics())
-                return rewards, values, log_probs, entropy_terms
+        return rewards, values, log_probs, entropy_terms
     def run_batch(self, episodes):
         for episode in range(episodes):
             self.run_episode()

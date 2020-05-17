@@ -50,6 +50,8 @@ class GameRunner:
         new_player_score = game_copy.score[0]-game_copy.score[1]
         reward = new_player_score-self.player_score
         self.player_score = new_player_score
+        if self.game.is_end_of_game():
+            self.game_statistics.update(self.game.get_statistics())
         return reward, self.game.is_end_of_game()
     def get_state_flat(self,perspective=0):
         order = [perspective] + list(set(range(self.game.players))-set([perspective]))
