@@ -20,9 +20,6 @@ class NNRunner(GameRunner):
         log_probs = []
         entropy_terms = []
         self.reset()
-        #Check if agent is not first player, in that case, the opponent makes a move first.
-        while (self.game.current_player != 1):
-            self.opponent_move()
         state = self.get_state_flat()
         #Fixed range for 200 max steps, should be sufficient.
         for steps in range(200):

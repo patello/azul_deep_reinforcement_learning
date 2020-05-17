@@ -78,6 +78,9 @@ class GameRunner:
         self.game.new_round()
         self.player_score = 0
         self.move_counter = 0
+        #Check if agent is not first player, in that case, the opponent makes a move first.
+        while (self.game.current_player != 1):
+            self.opponent_move()
 
 class RandomAgent():
     def __init__(self):
