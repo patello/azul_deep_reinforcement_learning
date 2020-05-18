@@ -20,14 +20,14 @@ class NNRunner():
         log_probs = []
         entropy_terms = []
         self.game_runner.reset()
-        state = self.game_runner.get_state_flat()
+        state = self.game_runner.get_state()
         #Run until step returns done=True
         done = False
         while not done:
             valid_moves = torch.from_numpy(self.game_runner.get_valid_moves().reshape(1,180))
             action, policy_dist, log_policy_dist, value = self.agent.get_ac_output(state,valid_moves)
             reward, done = self.game_runner.step(action)  
-            new_state = self.game_runner.get_state_flat()
+            new_state = self.game_runner.get_state()
 
             log_prob = log_policy_dist.squeeze(0)[action]
             

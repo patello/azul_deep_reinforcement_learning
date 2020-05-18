@@ -68,9 +68,9 @@ def test_step():
     assert np.array_equal(game_center,np.array([0,0,0,0,0,1]))
     assert gamerunner.game.current_player == 1
 
-def test_get_state_flat():
+def test_get_state():
     gamerunner = GameRunner()
-    state_flat = gamerunner.get_state_flat()
+    state_flat = gamerunner.get_state()
     assert np.sum(state_flat) == 4*5 + 1
     assert np.size(state_flat) == 5*5 + 6 + 5*5*2 + 5*5*2 + 2 + 2 + 1
 

@@ -35,7 +35,7 @@ class GameRunner:
         self.player_score = 0
         self.move_counter = 0
     def opponent_move(self):
-        state=self.get_state_flat(perspective=self.game.current_player-1)
+        state=self.get_state(perspective=self.game.current_player-1)
         valid_moves = torch.from_numpy(self.get_valid_moves().reshape(1,180))
         action = self.opponent.get_a_output(state,valid_moves)
         self.game.step(*nn_deserialize(action))
@@ -53,7 +53,7 @@ class GameRunner:
         if self.game.is_end_of_game():
             self.game_statistics.update(self.game.get_statistics())
         return reward, self.game.is_end_of_game()
-    def get_state_flat(self,perspective=0):
+    def get_state(self,perspective=0):
         order = [perspective] + list(set(range(self.game.players))-set([perspective]))
         if self.game.next_first_player > 0:
             perspective_next_first_player = ((self.game.next_first_player - 1 - perspective) % self.game.players) + 1

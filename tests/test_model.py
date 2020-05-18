@@ -12,7 +12,7 @@ def test_model_forward():
     agent=Agent()
     game_runner=GameRunner()
     nnrunner = NNRunner(agent,game_runner)
-    state = Variable(torch.from_numpy(nnrunner.game_runner.get_state_flat()).float().unsqueeze(0))
+    state = Variable(torch.from_numpy(nnrunner.game_runner.get_state()).float().unsqueeze(0))
     #Test that the correct thing gets returned from the forward pass
     policy_dist, log_policy_dist = ac_net.forward_actor(state)
     value = ac_net.forward_critic(state)
